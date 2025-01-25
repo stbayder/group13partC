@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Profile Page{% endblock %}
+{% block content %}
+
+
+<div class="personal-area">
+    <h1>אזור אישי</h1>
+    <div class="info-container">
+        <div class="info-item">
+            <span class="label">שם מלא</span>
+            <span class="value" id="profile_full_name">סתיו ביידר</span>
+        </div>
+        <div class="info-item">
+            <span class="label">כתובת</span>
+            <span class="value" id="profile_address">הרצל 45, תל אביב</span>
+        </div>
+        <div class="info-item">
+            <span class="label">טלפון</span>
+            <span class="value" id="profile_phone">052-8765432</span>
+        </div>
+        <div class="info-item">
+            <span class="label">תפקיד</span>
+            <span class="value" id="profile_role">מנהלת שיווק</span>
+        </div>
+        <div class="info-item">
+            <span class="label">חברה</span>
+            <span class="value" id="profile_company">פתרונות ירוקים בע״מ</span>
+        </div>
+    </div>
+</div>
+<script>
+    populateProfilePage()
+</script>
+{% endblock %}
