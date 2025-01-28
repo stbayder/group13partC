@@ -148,3 +148,68 @@ function validateContactUs() {
         return false
 }
 
+// Function for doing form validation on add-product page
+function validateAddProduct() {
+    const form = document.getElementById('addProductForm');
+    const successMessage = document.getElementById('success-message');
+
+    // Regular expressions for validation
+    const patterns = {
+        product_id: /^[a-zA-Z0-9-_]+$/
+    };
+
+    // Function to show error
+    function showError(field, isError) {
+        const errorElement = document.getElementById(`${field}-error`);
+        const inputElement = document.getElementById(field);
+
+        if (isError) {
+            errorElement.style.display = 'block';
+            inputElement.classList.add('invalid');
+        } else {
+            errorElement.style.display = 'none';
+            inputElement.classList.remove('invalid');
+        }
+    }
+
+    // Validate individual fields
+    function validateField(field, value) {
+        switch(field) {
+            case 'product_id':
+                return patterns.product_id.test(value);
+            case 'product_name':
+            case 'supplier_name':
+                return value.trim().length >= 2;
+            case 'description':
+                return value.trim().length >= 10;
+            case 'image':
+                return value !== '';
+            case 'price':
+            case 'units':
+                return !isNaN(value) && parseFloat(value) > 0;
+            default:
+                return true;
+        }
+    }
+
+    // Form submission
+    let isValid = true;
+
+    // Validate all fields
+    ['product_id', 'product_name', 'description', 'image', 'price', 'units', 'supplier_name'].forEach(field => {
+        const element = document.getElementById(field);
+        const fieldIsValid = validateField(field, element.value);
+        showError(field, !fieldIsValid);
+        if (!fieldIsValid) isValid = false;
+    });
+
+    if (isValid) {
+        alert('מוצר נוסף בהצלחה!')
+        // Form is valid, we can send the request to the backend
+        // TODO: when we have backend, save the information submitted from this form
+        return true;
+    }
+
+    // Form is invalid :(
+    return false;
+}
