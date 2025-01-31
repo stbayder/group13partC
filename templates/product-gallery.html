@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Product Gallery{% endblock %}
+{% block content %}
+
+<div class="contact-container">
+    <h1>גלריית מוצרים</h1>
+
+    <div class="search-container">
+        <input type="text" id="productSearch" placeholder="חפש מוצרים..." class="search-input">
+    </div>
+
+    <div class="product-grid" id="productGrid">
+        <!-- Product cards will be dynamically inserted here -->
+    </div>
+</div>
+
+<script>
+// Sample product data
+const products = [
+    { id: 1, name: "מוצר 1", description: "תיאור קצר של מוצר 1", minPrice: 50, maxPrice: 100, image: "https://via.assets.so/furniture.png?id=1&q=95&w=200&h=200&fit=fill" },
+    { id: 2, name: "מוצר 2", description: "תיאור קצר של מוצר 2", minPrice: 50, maxPrice: 100, image: "https://via.assets.so/furniture.png?id=2&q=95&w=200&h=200&fit=fill" },
+    { id: 3, name: "מוצר 3", description: "תיאור קצר של מוצר 3", minPrice: 50, maxPrice: 100, image: "https://via.assets.so/furniture.png?id=3&q=95&w=200&h=200&fit=fill" },
+    { id: 4, name: "מוצר 4", description: "תיאור קצר של מוצר 4", minPrice: 50, maxPrice: 100, image: "https://via.assets.so/furniture.png?id=4&q=95&w=200&h=200&fit=fill" },
+    { id: 5, name: "מוצר 5", description: "תיאור קצר של מוצר 5", minPrice: 50, maxPrice: 100, image: "https://via.assets.so/furniture.png?id=5&q=95&w=200&h=200&fit=fill" },
+    { id: 6, name: "מוצר 6", description: "תיאור קצר של מוצר 6", minPrice: 50, maxPrice: 100, image: "https://via.assets.so/furniture.png?id=6&q=95&w=200&h=200&fit=fill" },
+];
+
+function createProductCard(product) {
+    return `
+        <div class="product-card">
+            <img src="${product.image}" alt="${product.name}" class="product-image">
+            <h3 class="product-name">${product.name}</h3>
+            <p class="product-description">${product.description}</p>
+            <p class="product-price">מחיר: ₪${product.minPrice} - ₪${product.maxPrice}</p>
+            <button class="more-info-btn" onclick="showMoreInfo(${product.id})">מידע נוסף</button>
+        </div>
+    `;
+}
+
+function renderProducts(productsToRender) {
+    const productGrid = document.getElementById('productGrid');
+    productGrid.innerHTML = productsToRender.map(createProductCard).join('');
+}
+
+function filterProducts() {
+    const searchTerm = document.getElementById('productSearch').value.toLowerCase();
+    const filteredProducts = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm) ||
+        product.description.toLowerCase().includes(searchTerm)
+    );
+    renderProducts(filteredProducts);
+}
+
+function showMoreInfo(productId) {
+    // Implement the logic to show more information about the product
+    window.location = `/product-info?id=${productId}`
+}
+
+// Initial render
+renderProducts(products);
+
+// Add event listener for search input
+document.getElementById('productSearch').addEventListener('input', filterProducts);
+</script>
+
+{% endblock %}
+
