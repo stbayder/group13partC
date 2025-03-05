@@ -15,6 +15,7 @@ def generate_password(length=12):
 
 # Function to initialize collections
 def initialize_db(db):
+    print("stavpassword:",hash_password("stavisthebest").decode('utf-8'))
     # Ensure unique UserID index
     db.users.create_index("UserID", unique=True)
     

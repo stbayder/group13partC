@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request
+from flask import Flask, jsonify, render_template, request
 import os
 from flask_pymongo import PyMongo
 from dotenv import load_dotenv
+import bcrypt
 
-from utilities.db_connector import initialize_db
+from utilities.db_connector import initialize_db,hash_password
 
 # Load environment variables
 load_dotenv()
@@ -16,14 +17,29 @@ mongo = PyMongo(app)
 def home():
     return render_template('index.html')
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['POST'])
 def login():
-    # if request.method == 'POST':
-    #     username = request.form['username']
-    #     password = request.form['password']
-    #     # הוספת קוד לבדוק את שם המשתמש והסיסמה
-    #     return "ברוך הבא, {}".format(username)  # או מעבר לעמוד אחר
-    return render_template('login.html')
+    data = request.get_json()
+    username = data.get('userName')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({"error": "Username and password are required"}), 400
+
+    # Find user in the database
+    user = mongo.db.users.find_one({"UserName": username})
+
+    if not user:
+        return jsonify({"error": "Invalid credentials, username not found"}), 401  # User not found
+
+    # Extract stored hashed password
+    stored_hashed_password = user.get("password_hash")  
+
+    # Verify password
+    if bcrypt.checkpw(password.encode("utf-8"), stored_hashed_password.encode("utf-8")):
+        return jsonify({"message": "Login successful!", "username": username}), 200
+
+    return jsonify({"error": "Invalid credentials"}), 401  # Incorrect password
 
 @app.route('/contact-us/', methods=['GET', 'POST'])
 def contact():

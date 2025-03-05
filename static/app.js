@@ -126,19 +126,45 @@ function validateField(field, value) {
   // Authentication & Profile Functions
   
   // Handle login logic (to be moved to the backend)
-  function handleLoginForm() {
+  function handleLoginForm(event) {
+    event.preventDefault()
     var username = document.forms['login']['username'].value;
     var password = document.forms['login']['password'].value;
-    
-    
-    // if ((username == "shani" || username == "stav") && password == "123456") {
-    //   setCookie("username", username, 7);  // Set cookie for 7 days
-    //   return true;
-    // }
-  
-    alert("Login failed!");
-    return false;
-  }
+
+    fetch("/login", {
+        method: "POST",
+        body: JSON.stringify({
+            userName: username,
+            password: password,
+        }),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(response => response.json()) // Convert response to JSON
+    .then(data => {
+        if (data.message) {
+            alert(data.message);  // Success message
+            setCookie("username", username, 7);
+
+            // ✅ Clear form fields after successful login
+            document.forms['login']['username'].value = "";
+            document.forms['login']['password'].value = "";
+
+            // window.location.href = "/profile";  // Redirect to profile page
+        } else {
+            alert("Login failed! " + (data.error || ""));
+            // ❌ Don't clear fields here to let the user correct their input
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("Login failed due to an error!");  // Handle network errors
+    });
+
+    return false; // Prevent form submission
+}
+
   
   // Populate profile page with user data (currently using hardcoded data)
   function populateProfilePage() {
