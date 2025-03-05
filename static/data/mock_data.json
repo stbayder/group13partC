@@ -1,0 +1,772 @@
+{
+    "users": [
+        {
+            "UserID": 1,
+            "UserName": "איתי מזרחי",
+            "Email": "itaym@mail.com",
+            "Role": "Customer"
+        },
+        {
+            "UserID": 2,
+            "UserName": "עומר מזרחי",
+            "Email": "omerm@mail.com",
+            "Role": "Customer"
+        },
+        {
+            "UserID": 3,
+            "UserName": "איתי שטרן",
+            "Email": "itays@mail.com",
+            "Role": "Customer"
+        },
+        {
+            "UserID": 4,
+            "UserName": "נועה רוזן",
+            "Email": "noar@mail.com",
+            "Role": "Supplier"
+        },
+        {
+            "UserID": 5,
+            "UserName": "נועה לוי",
+            "Email": "noal@mail.com",
+            "Role": "Customer"
+        },
+        {
+            "UserID": 6,
+            "UserName": "ליאן גולדשטיין",
+            "Email": "liang@mail.com",
+            "Role": "Admin"
+        },
+        {
+            "UserID": 7,
+            "UserName": "נועם דוד",
+            "Email": "noamd@mail.com",
+            "Role": "Supplier"
+        },
+        {
+            "UserID": 8,
+            "UserName": "אורי ברק",
+            "Email": "orib@mail.com",
+            "Role": "Supplier"
+        },
+        {
+            "UserID": 9,
+            "UserName": "שני ברק",
+            "Email": "shanib@mail.com",
+            "Role": "Admin"
+        },
+        {
+            "UserID": 10,
+            "UserName": "טליה לוי",
+            "Email": "talial@mail.com",
+            "Role": "Customer"
+        },
+        {
+            "UserID": 11,
+            "UserName": "שירה ברק",
+            "Email": "shirab@mail.com",
+            "Role": "Admin"
+        },
+        {
+            "UserID": 12,
+            "UserName": "יונתן גולדשטיין",
+            "Email": "jonathang@mail.com",
+            "Role": "Supplier"
+        },
+        {
+            "UserID": 13,
+            "UserName": "מור הרשקוביץ",
+            "Email": "morh@mail.com",
+            "Role": "Supplier"
+        },
+        {
+            "UserID": 14,
+            "UserName": "דניאל פרידמן",
+            "Email": "danielf@mail.com",
+            "Role": "Supplier"
+        },
+        {
+            "UserID": 15,
+            "UserName": "שי בן-דוד",
+            "Email": "shayb@mail.com",
+            "Role": "Supplier"
+        },
+        {
+            "UserID": 16,
+            "UserName": "אלירן בן-דוד",
+            "Email": "eliranb@mail.com",
+            "Role": "Admin"
+        },
+        {
+            "UserID": 17,
+            "UserName": "אורית רובינשטיין",
+            "Email": "oritr@mail.com",
+            "Role": "Admin"
+        },
+        {
+            "UserID": 18,
+            "UserName": "טטיאנה בר",
+            "Email": "tatib@mail.com",
+            "Role": "Supplier"
+        },
+        {
+            "UserID": 19,
+            "UserName": "יולי דוידויץ",
+            "Email": "yulid@mail.com",
+            "Role": "Supplier"
+        },
+        {
+            "UserID": 20,
+            "UserName": "לאון מזרחי",
+            "Email": "leonm@mail.com",
+            "Role": "Admin"
+        }
+    ],
+    "suppliers": [
+        {
+            "SuppID": 1,
+            "SuppName": "תחנת דלק ירושלים",
+            "Email": "delekjeruz@biz.com",
+            "Phone": "+972-56-8896584",
+            "Address": "187 דיזנגוף, באר שבע",
+            "UserID": 5
+        },
+        {
+            "SuppID": 2,
+            "SuppName": "שפע מזון בע\"מ",
+            "Email": "foodbaam@biz.com",
+            "Phone": "+972-51-8862585",
+            "Address": "102 הרצל, ירושלים",
+            "UserID": 8
+        },
+        {
+            "SuppID": 3,
+            "SuppName": "סיגריות שמואל",
+            "Email": "shmuel@gmail.com",
+            "Phone": "+972-54-8914890",
+            "Address": "9 שדרות רוטשילד, חיפה",
+            "UserID": 3
+        },
+        {
+            "SuppID": 4,
+            "SuppName": "אנרגיה אנרגיה",
+            "Email": "energyenergy@biz.com",
+            "Phone": "+972-57-8264991",
+            "Address": "131 בן גוריון, ראשון לציון",
+            "UserID": 7
+        },
+        {
+            "SuppID": 5,
+            "SuppName": "יוסי מוצרי חשמל",
+            "Email": "joesfElectricity@biz.com",
+            "Phone": "+972-50-8217540",
+            "Address": "179 בן גוריון, ירושלים",
+            "UserID": 2
+        },
+        {
+            "SuppID": 6,
+            "SuppName": "אלקטרו ישראל",
+            "Email": "electroisrael@biz.com",
+            "Phone": "+972-58-5232143",
+            "Address": "18 יהודה המכבי, פתח תקווה",
+            "UserID": 8
+        },
+        {
+            "SuppID": 7,
+            "SuppName": "עולם המחשבים",
+            "Email": "pcworld@biz.com",
+            "Phone": "+972-50-3861166",
+            "Address": "176 יהודה המכבי, תל אביב",
+            "UserID": 12
+        },
+        {
+            "SuppID": 8,
+            "SuppName": "יוסי מוצרי עץ",
+            "Email": "josephwood@biz.com",
+            "Phone": "+972-54-7105116",
+            "Address": "59 שדרות רוטשילד, באר שבע",
+            "UserID": 6
+        },
+        {
+            "SuppID": 9,
+            "SuppName": "באז ישראל",
+            "Email": "buzz@biz.com",
+            "Phone": "+972-55-8116698",
+            "Address": "111 בן גוריון, חיפה",
+            "UserID": 14
+        },
+        {
+            "SuppID": 10,
+            "SuppName": "טבע ישראל",
+            "Email": "teva@biz.com",
+            "Phone": "+972-57-4896162",
+            "Address": "124 יהודה המכבי, תל אביב",
+            "UserID": 17
+        },
+        {
+            "SuppID": 11,
+            "SuppName": "פועלים של ציון",
+            "Email": "zionPoalim@biz.com",
+            "Phone": "+972-50-1976034",
+            "Address": "12 הרצל, חיפה",
+            "UserID": 8
+        },
+        {
+            "SuppID": 12,
+            "SuppName": "אורן בנייה",
+            "Email": "orenthebuilder @biz.com",
+            "Phone": "+972-57-3501581",
+            "Address": "24 בן גוריון, חיפה",
+            "UserID": 6
+        },
+        {
+            "SuppID": 13,
+            "SuppName": "ביג",
+            "Email": "thebig@biz.com",
+            "Phone": "+972-56-3673723",
+            "Address": "77 דיזנגוף, ראשון לציון",
+            "UserID": 11
+        },
+        {
+            "SuppID": 14,
+            "SuppName": "אמות",
+            "Email": "amot@biz.com",
+            "Phone": "+972-55-5442354",
+            "Address": "150 הרצל, ירושלים",
+            "UserID": 9
+        },
+        {
+            "SuppID": 15,
+            "SuppName": "אנרג'ייזר",
+            "Email": "energizer@biz.com",
+            "Phone": "+972-53-2228512",
+            "Address": "135 שדרות רוטשילד, חיפה",
+            "UserID": 17
+        },
+        {
+            "SuppID": 16,
+            "SuppName": "מטריקס",
+            "Email": "metrix@biz.com",
+            "Phone": "+972-55-1809005",
+            "Address": "66 נמיר, פתח תקווה",
+            "UserID": 3
+        },
+        {
+            "SuppID": 17,
+            "SuppName": "אקוטיאל",
+            "Email": "akotiel@biz.com",
+            "Phone": "+972-55-4720575",
+            "Address": "15 דיזנגוף, תל אביב",
+            "UserID": 6
+        },
+        {
+            "SuppID": 18,
+            "SuppName": "דלתא",
+            "Email": "Delta@biz.com",
+            "Phone": "+972-50-3695388",
+            "Address": "131 יהודה המכבי, ירושלים",
+            "UserID": 18
+        },
+        {
+            "SuppID": 19,
+            "SuppName": "פוקס",
+            "Email": "fox@biz.com",
+            "Phone": "+972-56-8286165",
+            "Address": "112 בן גוריון, ראשון לציון",
+            "UserID": 20
+        },
+        {
+            "SuppID": 20,
+            "SuppName": "וילאר",
+            "Email": "viler@biz.com",
+            "Phone": "+972-58-7238682",
+            "Address": "166 דיזנגוף, תל אביב",
+            "UserID": 14
+        }
+    ],
+    "products": [
+        {
+            "ProdID": 1,
+            "ProdName": "תפוז",
+            "BasePrice": 190.65,
+            "Currency": "ILS",
+            "Category": "מזון",
+            "Specifications": "איכות גבוהה",
+            "UserID": 2
+        },
+        {
+            "ProdID": 2,
+            "ProdName": "מטהר אוויר",
+            "BasePrice": 270.51,
+            "Currency": "ILS",
+            "Category": "אלקטרוניקה",
+            "Specifications": "איכות גבוהה",
+            "UserID": 16
+        },
+        {
+            "ProdID": 3,
+            "ProdName": "שמן קוקוס",
+            "BasePrice": 361.88,
+            "Currency": "ILS",
+            "Category": "קוסמטיקה",
+            "Specifications": "איכות גבוהה",
+            "UserID": 13
+        },
+        {
+            "ProdID": 4,
+            "ProdName": "חולצת דיור",
+            "BasePrice": 282.91,
+            "Currency": "ILS",
+            "Category": "ביגוד",
+            "Specifications": "איכות גבוהה",
+            "UserID": 19
+        },
+        {
+            "ProdID": 5,
+            "ProdName": "מגן מסך",
+            "BasePrice": 298.93,
+            "Currency": "ILS",
+            "Category": "אלקטרוניקה",
+            "Specifications": "איכות גבוהה",
+            "UserID": 15
+        },
+        {
+            "ProdID": 6,
+            "ProdName": "מסקרה",
+            "BasePrice": 66.76,
+            "Currency": "ILS",
+            "Category": "קוסמטיקה",
+            "Specifications": "איכות גבוהה",
+            "UserID": 18
+        },
+        {
+            "ProdID": 7,
+            "ProdName": "מסך מחשב",
+            "BasePrice": 339.62,
+            "Currency": "ILS",
+            "Category": "אלקטרוניקה",
+            "Specifications": "איכות גבוהה",
+            "UserID": 17
+        },
+        {
+            "ProdID": 8,
+            "ProdName": "יוגורט עיזים",
+            "BasePrice": 137.79,
+            "Currency": "ILS",
+            "Category": "מזון",
+            "Specifications": "איכות גבוהה",
+            "UserID": 17
+        },
+        {
+            "ProdID": 9,
+            "ProdName": "מכנסיים יפים ",
+            "BasePrice": 220.56,
+            "Currency": "ILS",
+            "Category": "ביגוד",
+            "Specifications": "איכות גבוהה",
+            "UserID": 16
+        },
+        {
+            "ProdID": 10,
+            "ProdName": "מוצר 10",
+            "BasePrice": 238.93,
+            "Currency": "ILS",
+            "Category": "אלקטרוניקה",
+            "Specifications": "איכות גבוהה",
+            "UserID": 4
+        },
+        {
+            "ProdID": 11,
+            "ProdName": "מוצר 11",
+            "BasePrice": 429.22,
+            "Currency": "ILS",
+            "Category": "אלקטרוניקה",
+            "Specifications": "איכות גבוהה",
+            "UserID": 1
+        },
+        {
+            "ProdID": 12,
+            "ProdName": "מוצר 12",
+            "BasePrice": 76.78,
+            "Currency": "ILS",
+            "Category": "מזון",
+            "Specifications": "איכות גבוהה",
+            "UserID": 6
+        },
+        {
+            "ProdID": 13,
+            "ProdName": "מוצר 13",
+            "BasePrice": 100.42,
+            "Currency": "ILS",
+            "Category": "רהיטים",
+            "Specifications": "איכות גבוהה",
+            "UserID": 20
+        },
+        {
+            "ProdID": 14,
+            "ProdName": "מוצר 14",
+            "BasePrice": 97.23,
+            "Currency": "ILS",
+            "Category": "מזון",
+            "Specifications": "איכות גבוהה",
+            "UserID": 5
+        },
+        {
+            "ProdID": 15,
+            "ProdName": "מוצר 15",
+            "BasePrice": 375.62,
+            "Currency": "ILS",
+            "Category": "ביגוד",
+            "Specifications": "איכות גבוהה",
+            "UserID": 4
+        },
+        {
+            "ProdID": 16,
+            "ProdName": "מוצר 16",
+            "BasePrice": 427.04,
+            "Currency": "ILS",
+            "Category": "רהיטים",
+            "Specifications": "איכות גבוהה",
+            "UserID": 14
+        },
+        {
+            "ProdID": 17,
+            "ProdName": "מוצר 17",
+            "BasePrice": 410.54,
+            "Currency": "ILS",
+            "Category": "אלקטרוניקה",
+            "Specifications": "איכות גבוהה",
+            "UserID": 13
+        },
+        {
+            "ProdID": 18,
+            "ProdName": "מוצר 18",
+            "BasePrice": 191.43,
+            "Currency": "ILS",
+            "Category": "קוסמטיקה",
+            "Specifications": "איכות גבוהה",
+            "UserID": 4
+        },
+        {
+            "ProdID": 19,
+            "ProdName": "מוצר 19",
+            "BasePrice": 16.25,
+            "Currency": "ILS",
+            "Category": "ביגוד",
+            "Specifications": "איכות גבוהה",
+            "UserID": 20
+        },
+        {
+            "ProdID": 20,
+            "ProdName": "מוצר 20",
+            "BasePrice": 26.64,
+            "Currency": "ILS",
+            "Category": "מזון",
+            "Specifications": "איכות גבוהה",
+            "UserID": 8
+        }
+    ],
+    "discounts": [
+        {
+            "DiscountID": 1,
+            "SuppID": 8,
+            "ProdID": 3,
+            "DiscountType": "Percentage",
+            "DiscountValue": 29.92,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 4
+        },
+        {
+            "DiscountID": 2,
+            "SuppID": 14,
+            "ProdID": 17,
+            "DiscountType": "Percentage",
+            "DiscountValue": 10.67,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 2
+        },
+        {
+            "DiscountID": 3,
+            "SuppID": 18,
+            "ProdID": 5,
+            "DiscountType": "Percentage",
+            "DiscountValue": 38.33,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 7
+        },
+        {
+            "DiscountID": 4,
+            "SuppID": 4,
+            "ProdID": 7,
+            "DiscountType": "Fixed",
+            "DiscountValue": 42.07,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 11
+        },
+        {
+            "DiscountID": 5,
+            "SuppID": 6,
+            "ProdID": 1,
+            "DiscountType": "Percentage",
+            "DiscountValue": 20.6,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 17
+        },
+        {
+            "DiscountID": 6,
+            "SuppID": 10,
+            "ProdID": 19,
+            "DiscountType": "Percentage",
+            "DiscountValue": 8.98,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 17
+        },
+        {
+            "DiscountID": 7,
+            "SuppID": 10,
+            "ProdID": 18,
+            "DiscountType": "Fixed",
+            "DiscountValue": 35.2,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 12
+        },
+        {
+            "DiscountID": 8,
+            "SuppID": 8,
+            "ProdID": 18,
+            "DiscountType": "Fixed",
+            "DiscountValue": 28.33,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 9
+        },
+        {
+            "DiscountID": 9,
+            "SuppID": 9,
+            "ProdID": 4,
+            "DiscountType": "Fixed",
+            "DiscountValue": 23.08,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 2
+        },
+        {
+            "DiscountID": 10,
+            "SuppID": 12,
+            "ProdID": 18,
+            "DiscountType": "Fixed",
+            "DiscountValue": 6.52,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 18
+        },
+        {
+            "DiscountID": 11,
+            "SuppID": 10,
+            "ProdID": 5,
+            "DiscountType": "Fixed",
+            "DiscountValue": 36.13,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 19
+        },
+        {
+            "DiscountID": 12,
+            "SuppID": 4,
+            "ProdID": 2,
+            "DiscountType": "Fixed",
+            "DiscountValue": 19.18,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 7
+        },
+        {
+            "DiscountID": 13,
+            "SuppID": 4,
+            "ProdID": 6,
+            "DiscountType": "Percentage",
+            "DiscountValue": 40.26,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 9
+        },
+        {
+            "DiscountID": 14,
+            "SuppID": 19,
+            "ProdID": 12,
+            "DiscountType": "Fixed",
+            "DiscountValue": 34.84,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 15
+        },
+        {
+            "DiscountID": 15,
+            "SuppID": 15,
+            "ProdID": 1,
+            "DiscountType": "Fixed",
+            "DiscountValue": 21.6,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 9
+        },
+        {
+            "DiscountID": 16,
+            "SuppID": 8,
+            "ProdID": 3,
+            "DiscountType": "Percentage",
+            "DiscountValue": 19.73,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 5
+        },
+        {
+            "DiscountID": 17,
+            "SuppID": 20,
+            "ProdID": 18,
+            "DiscountType": "Fixed",
+            "DiscountValue": 28.29,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 15
+        },
+        {
+            "DiscountID": 18,
+            "SuppID": 2,
+            "ProdID": 9,
+            "DiscountType": "Fixed",
+            "DiscountValue": 26.84,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 1
+        },
+        {
+            "DiscountID": 19,
+            "SuppID": 6,
+            "ProdID": 17,
+            "DiscountType": "Fixed",
+            "DiscountValue": 32.03,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 6
+        },
+        {
+            "DiscountID": 20,
+            "SuppID": 3,
+            "ProdID": 12,
+            "DiscountType": "Percentage",
+            "DiscountValue": 28.52,
+            "Conditions": "לרכישות מעל 200 ש\"ח",
+            "UserID": 15
+        }
+    ],
+    "supplier_products": [
+        {
+            "SupplierProductID": 1,
+            "SuppID": 5,
+            "ProdID": 17,
+            "UserID": 5
+        },
+        {
+            "SupplierProductID": 2,
+            "SuppID": 12,
+            "ProdID": 17,
+            "UserID": 12
+        },
+        {
+            "SupplierProductID": 3,
+            "SuppID": 13,
+            "ProdID": 8,
+            "UserID": 20
+        },
+        {
+            "SupplierProductID": 4,
+            "SuppID": 2,
+            "ProdID": 17,
+            "UserID": 12
+        },
+        {
+            "SupplierProductID": 5,
+            "SuppID": 15,
+            "ProdID": 17,
+            "UserID": 13
+        },
+        {
+            "SupplierProductID": 6,
+            "SuppID": 12,
+            "ProdID": 3,
+            "UserID": 4
+        },
+        {
+            "SupplierProductID": 7,
+            "SuppID": 4,
+            "ProdID": 7,
+            "UserID": 3
+        },
+        {
+            "SupplierProductID": 8,
+            "SuppID": 7,
+            "ProdID": 3,
+            "UserID": 19
+        },
+        {
+            "SupplierProductID": 9,
+            "SuppID": 15,
+            "ProdID": 9,
+            "UserID": 18
+        },
+        {
+            "SupplierProductID": 10,
+            "SuppID": 17,
+            "ProdID": 14,
+            "UserID": 19
+        },
+        {
+            "SupplierProductID": 11,
+            "SuppID": 11,
+            "ProdID": 17,
+            "UserID": 10
+        },
+        {
+            "SupplierProductID": 12,
+            "SuppID": 11,
+            "ProdID": 8,
+            "UserID": 4
+        },
+        {
+            "SupplierProductID": 13,
+            "SuppID": 3,
+            "ProdID": 15,
+            "UserID": 9
+        },
+        {
+            "SupplierProductID": 14,
+            "SuppID": 3,
+            "ProdID": 17,
+            "UserID": 3
+        },
+        {
+            "SupplierProductID": 15,
+            "SuppID": 6,
+            "ProdID": 14,
+            "UserID": 17
+        },
+        {
+            "SupplierProductID": 16,
+            "SuppID": 1,
+            "ProdID": 20,
+            "UserID": 9
+        },
+        {
+            "SupplierProductID": 17,
+            "SuppID": 17,
+            "ProdID": 20,
+            "UserID": 11
+        },
+        {
+            "SupplierProductID": 18,
+            "SuppID": 8,
+            "ProdID": 4,
+            "UserID": 15
+        },
+        {
+            "SupplierProductID": 19,
+            "SuppID": 17,
+            "ProdID": 13,
+            "UserID": 17
+        },
+        {
+            "SupplierProductID": 20,
+            "SuppID": 4,
+            "ProdID": 3,
+            "UserID": 5
+        }
+    ]
+}
