@@ -129,11 +129,12 @@ function validateField(field, value) {
   function handleLoginForm() {
     var username = document.forms['login']['username'].value;
     var password = document.forms['login']['password'].value;
-  
-    if ((username == "shani" || username == "stav") && password == "123456") {
-      setCookie("username", username, 7);  // Set cookie for 7 days
-      return true;
-    }
+    
+    
+    // if ((username == "shani" || username == "stav") && password == "123456") {
+    //   setCookie("username", username, 7);  // Set cookie for 7 days
+    //   return true;
+    // }
   
     alert("Login failed!");
     return false;
