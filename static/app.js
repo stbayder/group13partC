@@ -143,18 +143,18 @@ function validateField(field, value) {
     })
     .then(response => response.json()) // Convert response to JSON
     .then(data => {
+      // Successful login logic
         if (data.message) {
-            alert(data.message);  // Success message
+            alert(data.message); 
             setCookie("username", username, 7);
 
-            // ✅ Clear form fields after successful login
             document.forms['login']['username'].value = "";
             document.forms['login']['password'].value = "";
 
-            // window.location.href = "/profile";  // Redirect to profile page
+            window.location.href = "/profile";  
         } else {
+          // Unsuccessful login logic
             alert("Login failed! " + (data.error || ""));
-            // ❌ Don't clear fields here to let the user correct their input
         }
     })
     .catch(error => {
@@ -168,43 +168,32 @@ function validateField(field, value) {
   
   // Populate profile page with user data (currently using hardcoded data)
   function populateProfilePage() {
-    const hardcodedInfo = {
-      'stav': {
-        'full_name': 'Stav Bider',
-        'address': 'Hertzel 45, Tel Aviv',
-        'phone': '052-5381648',
-        'role': 'Marketing',
-        'company': 'Example Company Inc'
-      },
-      'shani': {
-        'full_name': 'Shani Bar',
-        'address': 'Hertzel 45, Tel Aviv',
-        'phone': '052-5381648',
-        'role': 'Marketing',
-        'company': 'Example Company Inc'
-      }
-    }
-  
     const username = getCookie("username");
-  
-    // Ensure user is logged in
     if (username == null) {
       alert("You are not logged in!");
       window.location = "/login";
       return;
     }
-  
-    const profile = hardcodedInfo[username];
-    if (!profile) {
-      alert("Cannot display information about this profile");
-      window.location = "/login";
-      return;
-    }
-  
-    document.getElementById("profile_full_name").innerText = profile['full_name'];
-    document.getElementById("profile_address").innerText = profile['address'];
-    document.getElementById("profile_phone").innerText = profile['phone'];
-    document.getElementById("profile_role").innerText = profile['role'];
-    document.getElementById("profile_company").innerText = profile['company'];
+
+    fetch(`/supplier/${username}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(response => response.json())
+    .then(data=>{
+      console.log(data)
+      if (data.message === "Success") {
+        // document.getElementById("profile_full_name").innerText = ;
+        document.getElementById("profile_address").innerText = data.data['address'];
+        document.getElementById("profile_phone").innerText = data.data['phone'];
+        document.getElementById("profile_role").innerText = data.data['role'];
+        document.getElementById("profile_company").innerText =data.data['SuppName'];
+      } else {
+        // Unsuccessful login logic
+          alert("לא נמצא שם משתמש או ספק מתאים " + (data.error || ""));
+      }
+    }) 
   }
   

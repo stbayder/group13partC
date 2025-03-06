@@ -17,6 +17,10 @@ mongo = PyMongo(app)
 def home():
     return render_template('index.html')
 
+@app.route('/login', methods=['GET'])
+def loginPage():
+    return render_template('login.html')
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -45,9 +49,33 @@ def login():
 def contact():
     return render_template('contact-us.html')
 
-@app.route('/profile/', methods=['GET'])
+@app.route('/profile', methods=['GET'])
 def profile():
     return render_template('profile.html')
+
+@app.route('/supplier/<username>',methods=['GET'])
+def get_supplier_data(username):
+    user = mongo.db.users.find_one({"UserName": username})
+    print(user)
+    supplier = mongo.db.suppliers.find_one({"UserID":user['UserID']})
+    print(supplier)
+    if not user or not supplier:
+        print('heyo')
+        return jsonify({"error": "Invalid credentials, username not found"}), 401  # User or Supplier not found
+
+    return jsonify(
+    {
+        "message": 'Success',
+        "data": {
+            "SuppName": supplier['SuppName'],
+            "email": supplier['Email'],
+            "phone": supplier['Phone'],
+            "address": supplier['Address'],
+            "role": user['Role']
+        }
+    }), 200
+
+    
 
 @app.route('/add-product', methods=['GET'])
 def add_product():
