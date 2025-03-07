@@ -41,7 +41,6 @@
 const suppliersOfProduct = {{ suppliers|tojson }};
 const productData = {{ product|tojson }};
 
-console.log(suppliersOfProduct)
 let minPrice = null;
 let maxPrice = 0;
 
@@ -61,20 +60,6 @@ for (let supp of suppliersOfProduct) {
 }
 
 
-const product = {
-    id: 1,
-    name: "מוצר לדוגמה",
-    description: "זהו תיאור מפורט של המוצר לדוגמה. כאן תוכלו למצוא מידע על תכונות המוצר, שימושיו, ויתרונותיו.",
-    image: "https://via.assets.so/furniture.png?id=1&q=95&w=400&h=400&fit=fill"
-};
-
-// Sample supplier data
-const suppliers = [
-    { id: 1, name: "ספק א", phone: "03-1234567", address: "רחוב ראשי 1, תל אביב", pricePerUnit: 55, unitsAvailable: 100, discountRate: 5 },
-    { id: 2, name: "ספק ב", phone: "04-7654321", address: "רחוב המלאכה 2, חיפה", pricePerUnit: 60, unitsAvailable: 80, discountRate: 3 },
-    { id: 3, name: "ספק ג", phone: "02-9876543", address: "רחוב יפו 3, ירושלים", pricePerUnit: 52, unitsAvailable: 120, discountRate: 7 },
-];
-
 function populateProductInfo() {
     document.getElementById('productName').textContent = productData.ProdName;
     document.getElementById('productImage').src = productData.Img;
@@ -82,7 +67,6 @@ function populateProductInfo() {
     document.getElementById('productDescription').textContent = productData.Specifications;
     document.getElementById('productPriceRange').textContent = `טווח מחירים: ₪${minPrice} - ₪${maxPrice}`;
 }
-
 function createSupplierRow(supplier) {
     return `
         <tr>

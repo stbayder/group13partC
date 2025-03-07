@@ -5,63 +5,216 @@
 <div class="contact-container">
     <h1>גלריית מוצרים</h1>
 
+    <!-- Search Bar -->
     <div class="search-container">
         <input type="text" id="productSearch" placeholder="חפש מוצרים..." class="search-input">
     </div>
 
+    <!-- Category Filters -->
+    <div class="category-container" id="categoryContainer">
+        <!-- Category buttons will be added dynamically here -->
+    </div>
+
+    <!-- Product Grid -->
     <div class="product-grid" id="productGrid">
         <!-- Product cards will be dynamically inserted here -->
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination">
+        <button id="prevPage" onclick="changePage(-1)">« הקודם</button>
+        <span id="pageInfo"></span>
+        <button id="nextPage" onclick="changePage(1)">הבא »</button>
     </div>
 </div>
 
 <script>
-// Sample product data
-const products = [
-    { id: 1, name: "מוצר 1", description: "תיאור קצר של מוצר 1", minPrice: 50, maxPrice: 100, image: "https://via.assets.so/furniture.png?id=1&q=95&w=200&h=200&fit=fill" },
-    { id: 2, name: "מוצר 2", description: "תיאור קצר של מוצר 2", minPrice: 50, maxPrice: 100, image: "https://via.assets.so/furniture.png?id=2&q=95&w=200&h=200&fit=fill" },
-    { id: 3, name: "מוצר 3", description: "תיאור קצר של מוצר 3", minPrice: 50, maxPrice: 100, image: "https://via.assets.so/furniture.png?id=3&q=95&w=200&h=200&fit=fill" },
-    { id: 4, name: "מוצר 4", description: "תיאור קצר של מוצר 4", minPrice: 50, maxPrice: 100, image: "https://via.assets.so/furniture.png?id=4&q=95&w=200&h=200&fit=fill" },
-    { id: 5, name: "מוצר 5", description: "תיאור קצר של מוצר 5", minPrice: 50, maxPrice: 100, image: "https://via.assets.so/furniture.png?id=5&q=95&w=200&h=200&fit=fill" },
-    { id: 6, name: "מוצר 6", description: "תיאור קצר של מוצר 6", minPrice: 50, maxPrice: 100, image: "https://via.assets.so/furniture.png?id=6&q=95&w=200&h=200&fit=fill" },
-];
+const originalProducts = {{ products | tojson | safe }};
+let filteredProducts = [...originalProducts]; 
+let currentCategory = null;
+let currentPage = 1;
+const itemsPerPage = 6;
 
+const categoryIcons = {
+    "מזון": "🍎",
+    "אלקטרוניקה": "💻",
+    "ריהוט": "🪑",
+    "ביגוד": "👕",
+    "צעצועים": "🧸",
+    "ספרים": "📚",
+    "אחר": "📦"
+};
+
+// Get unique categories from products
+const categories = [...new Set(originalProducts.map(p => p.Category))];
+
+// Function to create category buttons
+function createCategoryButtons() {
+    const container = document.getElementById('categoryContainer');
+    container.innerHTML = '<button class="category-btn reset" onclick="resetFilters()">🔄 הצג הכל</button>'; // Reset button
+
+    categories.forEach(category => {
+        const icon = categoryIcons[category] || "📦"; // Default icon
+        container.innerHTML += `
+            <button name='${category} 'class="category-btn" onclick="filterByCategory('${category}')">
+                ${icon} ${category}
+            </button>
+        `;
+    });
+}
+
+// Function to create product cards
 function createProductCard(product) {
     return `
         <div class="product-card">
-            <img src="${product.image}" alt="${product.name}" class="product-image">
-            <h3 class="product-name">${product.name}</h3>
-            <p class="product-description">${product.description}</p>
-            <p class="product-price">מחיר: ₪${product.minPrice} - ₪${product.maxPrice}</p>
-            <button class="more-info-btn" onclick="showMoreInfo(${product.id})">מידע נוסף</button>
+            <img src="${product.Img}" alt="${product.ProdName}" class="product-image">
+            <h3 class="product-name">${product.ProdName}</h3>
+            <p class="product-description">${product.Specifications}</p>
+            <p class="product-price">קטגוריה: ${product.Category}</p>
+            <button class="more-info-btn" onclick="showMoreInfo(${product.ProdID})">מידע נוסף</button>
         </div>
     `;
 }
 
-function renderProducts(productsToRender) {
+// Render products with pagination
+function renderProducts() {
     const productGrid = document.getElementById('productGrid');
-    productGrid.innerHTML = productsToRender.map(createProductCard).join('');
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+
+    productGrid.innerHTML = paginatedProducts.map(createProductCard).join('');
+
+    document.getElementById('pageInfo').textContent = `עמוד ${currentPage} מתוך ${Math.ceil(filteredProducts.length / itemsPerPage)}`;
+
+    // Disable buttons if needed
+    document.getElementById('prevPage').disabled = currentPage === 1;
+    document.getElementById('nextPage').disabled = currentPage >= Math.ceil(filteredProducts.length / itemsPerPage);
+}
+
+function changePage(direction) {
+    currentPage += direction;
+    renderProducts();
 }
 
 function filterProducts() {
     const searchTerm = document.getElementById('productSearch').value.toLowerCase();
-    const filteredProducts = products.filter(product =>
-        product.name.toLowerCase().includes(searchTerm) ||
-        product.description.toLowerCase().includes(searchTerm)
+    filteredProducts = originalProducts.filter(product =>
+        product.ProdName.toLowerCase().includes(searchTerm) ||
+        product.Specifications.toLowerCase().includes(searchTerm) ||
+        product.Category.toLowerCase().includes(searchTerm)
     );
-    renderProducts(filteredProducts);
+
+    currentCategory = null; 
+    currentPage = 1; 
+    renderProducts();
+}
+
+function filterByCategory(category) {
+    filteredProducts = originalProducts.filter(product => product.Category === category);
+    let categoryButtons = document.getElementsByClassName('category-btn');
+    for(let cat of categoryButtons){
+        if(cat.name.replace(' ','') != category){
+            cat.classList.remove("selected-category")
+        }
+        else{
+            cat.classList.add("selected-category")
+        }
+    }
+    currentCategory = category;
+    currentPage = 1;
+    renderProducts();
+}
+
+function resetFilters() {
+    let categoryButtons = document.getElementsByClassName('category-btn');
+    for(let cat of categoryButtons){
+        cat.classList.remove("selected-category")   
+    }
+    
+    filteredProducts = [...originalProducts];
+    currentCategory = null;
+    document.getElementById('productSearch').value = ''; // Clear search
+    currentPage = 1;
+    renderProducts();
 }
 
 function showMoreInfo(productId) {
-    // Implement the logic to show more information about the product
-    window.location = `/product-info/${productId}`
+    window.location = `/product-info/${productId}`;
 }
 
 // Initial render
-renderProducts(products);
-
-// Add event listener for search input
+createCategoryButtons();
+renderProducts();
 document.getElementById('productSearch').addEventListener('input', filterProducts);
 </script>
 
-{% endblock %}
+<style>
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
 
+.product-card {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+
+.product-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.pagination {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.pagination button {
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+/* Category Filters */
+.category-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.category-btn {
+    padding: 20px;
+    margin: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    background-color: #eee;
+    border-radius: 5px;
+    color: black;
+    transition: all 0.2s;
+}
+
+.category-btn:hover {
+    background-color: #ddd;
+}
+
+.category-btn.reset {
+    background-color: #f44336;
+    color: white;
+}
+
+.category-btn.reset:hover {
+    background-color: #d32f2f;
+}
+.selected-category{
+    background-color: #5A8FBA;
+}
+.category-btn.selected-category:hover{
+    background-color: #5A8FBA;
+}
+</style>
+
+{% endblock %}

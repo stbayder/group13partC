@@ -86,7 +86,8 @@ def add_product():
 
 @app.route('/product-gallery', methods=['GET'])
 def product_gallery():
-    return render_template('product-gallery.html')
+    all_products = list(mongo.db.products.find())
+    return render_template('product-gallery.html',products=all_products)
 
 @app.route('/product-info/<product_id>', methods=['GET'])
 def product_info(product_id):
