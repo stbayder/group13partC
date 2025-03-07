@@ -24,9 +24,10 @@
                     <th>שם ספק</th>
                     <th>מספר טלפון</th>
                     <th>כתובת</th>
-                    <th>מחיר ליחידה</th>
+                    <th>מחיר רגיל</th>
+                    <th>מחיר סיטונאי</th>
                     <th>יחידות במלאי</th>
-                    <th>אחוז הנחה</th>
+                    <th> הנחה</th>
                 </tr>
             </thead>
             <tbody id="supplierTableBody">
@@ -37,13 +38,33 @@
 </div>
 
 <script>
-// Sample product data (replace with actual data from your backend)
+const suppliersOfProduct = {{ suppliers|tojson }};
+const productData = {{ product|tojson }};
+
+console.log(suppliersOfProduct)
+let minPrice = null;
+let maxPrice = 0;
+
+for (let supp of suppliersOfProduct) {
+    let prices = [supp.Price1, supp.Price2];
+    if(minPrice === null){
+        minPrice = supp.Price1
+    }
+    for (let price of prices) {
+        if (price < minPrice) {
+            minPrice = price;
+        }
+        if (price > maxPrice) {
+            maxPrice = price;
+        }
+    }
+}
+
+
 const product = {
     id: 1,
     name: "מוצר לדוגמה",
     description: "זהו תיאור מפורט של המוצר לדוגמה. כאן תוכלו למצוא מידע על תכונות המוצר, שימושיו, ויתרונותיו.",
-    minPrice: 50,
-    maxPrice: 100,
     image: "https://via.assets.so/furniture.png?id=1&q=95&w=400&h=400&fit=fill"
 };
 
@@ -55,30 +76,30 @@ const suppliers = [
 ];
 
 function populateProductInfo() {
-    document.getElementById('productName').textContent = product.name;
-    document.getElementById('productImage').src = product.image;
-    document.getElementById('productImage').alt = product.name;
-    document.getElementById('productDescription').textContent = product.description;
-    document.getElementById('productPriceRange').textContent = `טווח מחירים: ₪${product.minPrice} - ₪${product.maxPrice}`;
+    document.getElementById('productName').textContent = productData.ProdName;
+    document.getElementById('productImage').src = productData.Img;
+    document.getElementById('productImage').alt = productData.ProdName;
+    document.getElementById('productDescription').textContent = productData.Specifications;
+    document.getElementById('productPriceRange').textContent = `טווח מחירים: ₪${minPrice} - ₪${maxPrice}`;
 }
 
 function createSupplierRow(supplier) {
     return `
         <tr>
-            <td>${supplier.id}</td>
-            <td>${supplier.name}</td>
-            <td>${supplier.phone}</td>
-            <td>${supplier.address}</td>
-            <td>₪${supplier.pricePerUnit}</td>
-            <td>${supplier.unitsAvailable}</td>
-            <td>${supplier.discountRate}%</td>
+            <td>${supplier.SuppID}</td>
+            <td>${supplier.SuppName}</td>
+            <td>${supplier.Phone}</td>
+            <td>${supplier.Address}</td>
+            <td>₪${supplier.Price1}  ליח' עד ${supplier.Amount1}  יח'  </td>
+            <td>₪${supplier.Price2} ליח' מ ${supplier.Amount2} יח' ומעלה </td>
+            <td>${supplier.Stock}</td>
+            <td>${supplier.Discount ? supplier.Discount : ""}</td>
         </tr>
     `;
-}
-
+} 
 function populateSupplierTable() {
     const tableBody = document.getElementById('supplierTableBody');
-    tableBody.innerHTML = suppliers.map(createSupplierRow).join('');
+    tableBody.innerHTML = suppliersOfProduct.map(createSupplierRow).join('');
 }
 
 // Populate the page with data

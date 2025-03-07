@@ -401,6 +401,7 @@ body {
 
 .value {
     color: #333;
+    direction: rtl;
 }
 
 /* About page specific styles */

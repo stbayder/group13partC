@@ -183,16 +183,17 @@ function validateField(field, value) {
     })
     .then(response => response.json())
     .then(data=>{
-      console.log(data)
       if (data.message === "Success") {
-        // document.getElementById("profile_full_name").innerText = ;
+        document.getElementById("profile_full_name").innerText = data.data['fullname'];
         document.getElementById("profile_address").innerText = data.data['address'];
         document.getElementById("profile_phone").innerText = data.data['phone'];
-        document.getElementById("profile_role").innerText = data.data['role'];
-        document.getElementById("profile_company").innerText =data.data['SuppName'];
+        document.getElementById("profile_role").innerText = data.data['role'] == "Supplier" ? "ספק" : data.data['role'];
+        document.getElementById("profile_company").innerText = data.data['SuppName'] ;
       } else {
         // Unsuccessful login logic
           alert("לא נמצא שם משתמש או ספק מתאים " + (data.error || ""));
+          window.location = "/login";
+          return;
       }
     }) 
   }

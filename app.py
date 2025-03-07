@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, render_template, request
 import os
 from flask_pymongo import PyMongo
+from gridfs import GridFS
 from dotenv import load_dotenv
 import bcrypt
 
@@ -12,6 +13,7 @@ load_dotenv()
 app = Flask(__name__)
 app.config["MONGO_URI"] = os.getenv("DB_URI")
 mongo = PyMongo(app)
+fs = GridFS(mongo.db)
 
 @app.route('/', methods=['GET'])
 def home():
@@ -40,6 +42,9 @@ def login():
     stored_hashed_password = user.get("password_hash")  
 
     # Verify password
+    print("password:",password)
+    print("stored passsword:",stored_hashed_password)
+
     if bcrypt.checkpw(password.encode("utf-8"), stored_hashed_password.encode("utf-8")):
         return jsonify({"message": "Login successful!", "username": username}), 200
 
@@ -56,26 +61,24 @@ def profile():
 @app.route('/supplier/<username>',methods=['GET'])
 def get_supplier_data(username):
     user = mongo.db.users.find_one({"UserName": username})
-    print(user)
+    if not user :
+        return jsonify({"error": "Invalid credentials, user not found"}), 401  # User not found
     supplier = mongo.db.suppliers.find_one({"UserID":user['UserID']})
-    print(supplier)
-    if not user or not supplier:
-        print('heyo')
-        return jsonify({"error": "Invalid credentials, username not found"}), 401  # User or Supplier not found
+    if not supplier :
+        return jsonify({"error": "Invalid credentials, supplier not found"}), 401  # Supplier not found
 
     return jsonify(
     {
         "message": 'Success',
         "data": {
             "SuppName": supplier['SuppName'],
+            "fullname": user['FullName'],
             "email": supplier['Email'],
             "phone": supplier['Phone'],
             "address": supplier['Address'],
             "role": user['Role']
         }
     }), 200
-
-    
 
 @app.route('/add-product', methods=['GET'])
 def add_product():
@@ -85,9 +88,54 @@ def add_product():
 def product_gallery():
     return render_template('product-gallery.html')
 
-@app.route('/product-info', methods=['GET'])
-def product_info():
-    return render_template('product-info.html')
+@app.route('/product-info/<product_id>', methods=['GET'])
+def product_info(product_id):
+    try:
+        product_id = int(product_id)
+    except ValueError:
+        return "Invalid product ID", 400  
+    
+    # Query supplier_products to find all suppliers offering this product
+    suppliers_of_product = list(mongo.db.supplier_products.find({"ProdID": product_id}))
+    if not suppliers_of_product:
+        return "Invalid product ID", 400  
+
+    # Query product to get product info
+    product = mongo.db.products.find_one({"ProdID": product_id})
+
+    # Query discounts for this product
+    discounts = list(mongo.db.discounts.find({"ProdID": product_id}))
+
+    # Fetch supplier details for each entry, and combine data from supplier_product and supplier
+    suppliers_info = []
+
+    for entry in suppliers_of_product:
+        supplier = mongo.db.suppliers.find_one({"SuppID": entry["SuppID"]})
+
+        # Find a matching discount for this supplier and product
+        supplier_discount = next((disc for disc in discounts if disc['SuppID'] == entry['SuppID']), None)
+
+        if supplier:
+            supplier_info = {
+                "SuppName": supplier["SuppName"],
+                "Address": supplier['Address'],
+                "Price1": entry["Price1"],
+                "Amount1": entry["Amount1"],
+                "Price2": entry["Price2"],
+                "Amount2": entry["Amount2"],
+                "Email": supplier["Email"],
+                "Phone": supplier["Phone"],
+                "SuppID": supplier["SuppID"],
+                "Stock": entry["StockQuantity"],
+            }
+            
+            # Only attach the discount if it exists for this supplier
+            if supplier_discount:
+                supplier_info["Discount"] = supplier_discount
+
+            suppliers_info.append(supplier_info)
+    return render_template('product-info.html', suppliers=suppliers_info,product=product)
+
 
 @app.route('/about', methods=['GET'])
 def about():
