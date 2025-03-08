@@ -2,7 +2,7 @@
 {% block title %}Product Info{% endblock %}
 {% block content %}
 
-<div class="contact-container">
+<div class="contact-container product-page">
     <h1 id="productName">שם המוצר</h1>
 
     <div class="product-info-container">
@@ -92,6 +92,9 @@ populateSupplierTable();
 </script>
 
 <style>
+.contact-container.product-page{
+    max-width: 80vw;
+}
 .product-info-container {
     display: flex;
     flex-wrap: wrap;

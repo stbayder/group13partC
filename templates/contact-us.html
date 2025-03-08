@@ -6,12 +6,14 @@
     <h1>צור קשר</h1>
 
     <div class="contact-info">
-        <div>דוא"ל: info@example.com</div>
-        <div>טלפון: 03-5551234</div>
-        <div>כתובת: רחוב הדוגמה 12, תל אביב</div>
+        <div>
+            <div>דוא"ל: info@example.com</div>
+            <div>טלפון: 03-5551234</div>
+            <div>כתובת: רחוב הדוגמה 12, תל אביב</div>
+        </div>
     </div>
 
-    <form id="contactForm" method="POST" onsubmit="return validateContactUs()" action="/">
+    <form id="contactForm" method="POST" onsubmit="validateContactUs(event)" action="/">
         <div>
             <label for="fullname">שם מלא:</label>
             <input type="text" id="fullname" name="fullname" required>
@@ -50,4 +52,56 @@
         <a href="#">אינסטגרם</a>
     </div>
 </div>
+
+<script>
+    function validateContactUs(event) {
+    event.preventDefault();
+
+    const patterns = {
+        phone: /^(?:\+972|0)(?:[23489]|5[0-9]|77)[0-9]{7}$/,  // Valid phone pattern (Israel)
+        email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, // Valid email pattern
+        fullname: /^[\u0590-\u05FF\s]{2,}\s[\u0590-\u05FF\s]{2,}$/ // Hebrew name pattern
+    };
+
+    function validateField(field, value) {
+        switch (field) {
+        case 'fullname':
+            return value.trim().length >= 4;
+        case 'phone':
+            return patterns.phone.test(value);
+        case 'email':
+            return patterns.email.test(value);
+        case 'message':
+            return value.trim().length >= 10;
+        default:
+            return true;
+        }
+    }
+
+    let isValid = true;
+
+    // Validate all fields
+    ['fullname', 'phone', 'email', 'message'].forEach(field => {
+        const element = document.getElementById(field);
+        const fieldIsValid = validateField(field, element.value);
+        showError(field, !fieldIsValid);
+        if (!fieldIsValid) isValid = false;
+    });
+
+    if (isValid) {
+        alert('טופס נשלח בהצלחה!');
+
+        // Clear all fields
+        document.getElementById('fullname').value = '';
+        document.getElementById('phone').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('message').value = '';
+
+        return true;
+    }
+
+    return false;
+}
+
+</script>
 {% endblock %}

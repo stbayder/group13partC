@@ -32,25 +32,19 @@ def login():
     if not username or not password:
         return jsonify({"error": "Username and password are required"}), 400
 
-    # Find user in the database
     user = mongo.db.users.find_one({"UserName": username})
 
     if not user:
         return jsonify({"error": "Invalid credentials, username not found"}), 401  # User not found
 
-    # Extract stored hashed password
+    # decode and check stored hashed password
     stored_hashed_password = user.get("password_hash")  
-
-    # Verify password
-    print("password:",password)
-    print("stored passsword:",stored_hashed_password)
-
     if bcrypt.checkpw(password.encode("utf-8"), stored_hashed_password.encode("utf-8")):
         return jsonify({"message": "Login successful!", "username": username}), 200
 
     return jsonify({"error": "Invalid credentials"}), 401  # Incorrect password
 
-@app.route('/contact-us/', methods=['GET', 'POST'])
+@app.route('/contact-us/', methods=['GET'])
 def contact():
     return render_template('contact-us.html')
 
@@ -143,6 +137,7 @@ def about():
     return render_template('about.html')
 
 if __name__ == '__main__':
+    # print(hash_password('stavisthebest').decode('UTF-8'))
     with app.app_context():
         initialize_db(mongo.db)
     print("MongoDB setup complete.")

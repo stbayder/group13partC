@@ -37,49 +37,6 @@ function showError(field, isError) {
     }
 }
   
-// Validation Functions
-
-// Validate fields on the Contact Us page
-function validateContactUs() {
-    const patterns = {
-        phone: /^(?:\+972|0)(?:[23489]|5[0-9]|77)[0-9]{7}$/,  // Valid phone pattern (Israel)
-        email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, // Valid email pattern
-        fullname: /^[\u0590-\u05FF\s]{2,}\s[\u0590-\u05FF\s]{2,}$/ // Hebrew name pattern
-};
-  
-function validateField(field, value) {
-    switch (field) {
-    case 'fullname':
-        return value.trim().length >= 4;
-    case 'phone':
-        return patterns.phone.test(value);
-    case 'email':
-        return patterns.email.test(value);
-    case 'message':
-        return value.trim().length >= 10;
-    default:
-        return true;
-    }
-}
-  
-    let isValid = true;
-  
-    // Validate all fields
-    ['fullname', 'phone', 'email', 'message'].forEach(field => {
-      const element = document.getElementById(field);
-      const fieldIsValid = validateField(field, element.value);
-      showError(field, !fieldIsValid);
-      if (!fieldIsValid) isValid = false;
-    });
-  
-    if (isValid) {
-      alert('Form submitted successfully!');
-      return true;
-    }
-  
-    return false;
-  }
-  
   // Validate fields on the Add Product page
   function validateAddProduct() {
     const patterns = {

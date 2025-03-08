@@ -223,15 +223,26 @@ textarea:focus {
 
 /* Contact page specific styles */
 .contact-info {
-    text-align: center;
-    margin: 2rem 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    direction: rtl;
+    margin: 1rem 0;
     color: #4a5568;
     position: relative;
     z-index: 1;
 }
 
-.contact-info div {
+.contact-info   div{
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.contact-info div  div{
     margin: 0.5rem 0;
+    width: fit-content;
 }
 
 .social-links {
@@ -406,11 +417,13 @@ body {
 
 /* About page specific styles */
 .about-container {
+    display: flex;
+    flex-direction: column;
     padding: 2rem;
     max-width: 800px;
     margin: 0 auto;
     align-items: center;
-    text-align: center;
+    text-align: right;
     color: #333;
 }
 
@@ -441,7 +454,7 @@ body {
 .contact-container h1 {
     font-size: 2em;
     color: #5a8fba;
-    margin-bottom: 2em;
+    margin-bottom: 0;
     align-items: center;
     text-align: center;
 }

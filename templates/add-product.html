@@ -3,57 +3,63 @@
 {% block content %}
 
 <div class="contact-container">
-    <h1>הוספת מוצר חדש</h1>
+    <div class="add-new-product">
+        <h1>הוספת מוצר חדש</h1>
 
-    <form id="addProductForm" method="POST" onsubmit="return validateAddProduct()" action="/" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="product_id">מזהה מוצר:</label>
-            <input type="text" id="product_id" name="product_id" required>
-            <div class="error" id="product_id-error">נא להזין מזהה מוצר תקין</div>
+        <form id="addProductForm" method="POST" onsubmit="return validateAddProduct()" action="/" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="product_id">מזהה מוצר:</label>
+                <input type="text" id="product_id" name="product_id" required>
+                <div class="error" id="product_id-error">נא להזין מזהה מוצר תקין</div>
+            </div>
+
+            <div class="form-group">
+                <label for="product_name">שם המוצר:</label>
+                <input type="text" id="product_name" name="product_name" required>
+                <div class="error" id="product_name-error">נא להזין שם מוצר</div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">תיאור:</label>
+                <textarea id="description" name="description" required></textarea>
+                <div class="error" id="description-error">נא להזין תיאור מוצר (מינ' 10 תווים)</div>
+            </div>
+
+            <div class="form-group">
+                <label for="image">תמונה:</label>
+                <input type="file" id="image" name="image" accept="image/*" required>
+                <div class="error" id="image-error">נא לבחור קובץ תמונה</div>
+            </div>
+
+            <div class="form-group">
+                <label for="price">מחיר:</label>
+                <input type="number" id="price" name="price" step="0.01" required>
+                <div class="error" id="price-error">נא להזין מחיר תקין</div>
+            </div>
+
+            <div class="form-group">
+                <label for="units">כמות יחידות:</label>
+                <input type="number" id="units" name="units" required>
+                <div class="error" id="units-error">נא להזין כמות יחידות תקינה</div>
+            </div>
+
+            <div class="form-group">
+                <label for="supplier_name">שם הספק:</label>
+                <input type="text" id="supplier_name" name="supplier_name" required>
+                <div class="error" id="supplier_name-error">נא להזין שם ספק</div>
+            </div>
+
+            <button type="submit">הוסף מוצר</button>
+        </form>
+
+        <div class="success-message" id="success-message">
+            המוצר נוסף בהצלחה!
         </div>
-
-        <div class="form-group">
-            <label for="product_name">שם המוצר:</label>
-            <input type="text" id="product_name" name="product_name" required>
-            <div class="error" id="product_name-error">נא להזין שם מוצר</div>
-        </div>
-
-        <div class="form-group">
-            <label for="description">תיאור:</label>
-            <textarea id="description" name="description" required></textarea>
-            <div class="error" id="description-error">נא להזין תיאור מוצר (מינ' 10 תווים)</div>
-        </div>
-
-        <div class="form-group">
-            <label for="image">תמונה:</label>
-            <input type="file" id="image" name="image" accept="image/*" required>
-            <div class="error" id="image-error">נא לבחור קובץ תמונה</div>
-        </div>
-
-        <div class="form-group">
-            <label for="price">מחיר:</label>
-            <input type="number" id="price" name="price" step="0.01" required>
-            <div class="error" id="price-error">נא להזין מחיר תקין</div>
-        </div>
-
-        <div class="form-group">
-            <label for="units">כמות יחידות:</label>
-            <input type="number" id="units" name="units" required>
-            <div class="error" id="units-error">נא להזין כמות יחידות תקינה</div>
-        </div>
-
-        <div class="form-group">
-            <label for="supplier_name">שם הספק:</label>
-            <input type="text" id="supplier_name" name="supplier_name" required>
-            <div class="error" id="supplier_name-error">נא להזין שם ספק</div>
-        </div>
-
-        <button type="submit">הוסף מוצר</button>
-    </form>
-
-    <div class="success-message" id="success-message">
-        המוצר נוסף בהצלחה!
-    </div>
+    </div> 
 </div>
+
+<script>
+
+</script>
 {% endblock %}
 
