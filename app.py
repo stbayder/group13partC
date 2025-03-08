@@ -19,6 +19,19 @@ fs = GridFS(mongo.db)
 def home():
     return render_template('index.html')
 
+@app.route('/user/<username>', methods=['GET'])
+def getUserData(username):
+    user = mongo.db.users.find_one({"UserName": username})
+    if user:
+        return {
+            'UserName':user['UserName'],
+            'Email':user["Email"],
+            'Role':user["Role"],
+            'FullName':user["FullName"]
+        }
+    else:
+        return jsonify({"error": "Invalid credentials, username not found"}), 401  # User not found
+
 @app.route('/login', methods=['GET'])
 def loginPage():
     return render_template('login.html')
@@ -52,7 +65,16 @@ def contact():
 def profile():
     return render_template('profile.html')
 
-@app.route('/supplier/<username>',methods=['GET'])
+@app.route('/suppliers', methods=['GET'])
+def get_all_suppliers():
+    try:
+        suppliers = list(mongo.db.suppliers.find({}))
+        print((suppliers))
+        return jsonify({"message": "Success", "data": suppliers}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/supplier/by-username/<username>',methods=['GET'])
 def get_supplier_data(username):
     user = mongo.db.users.find_one({"UserName": username})
     if not user :
@@ -70,13 +92,82 @@ def get_supplier_data(username):
             "email": supplier['Email'],
             "phone": supplier['Phone'],
             "address": supplier['Address'],
-            "role": user['Role']
+            "role": user['Role'],
         }
     }), 200
 
-@app.route('/add-product', methods=['GET'])
-def add_product():
+@app.route('/supplier/by-name/<supplier_name>', methods=['GET'])
+def get_supplier_by_name(supplier_name):
+    print(supplier_name)
+    supplier = mongo.db.suppliers.find_one({"SuppName": supplier_name})
+    if not supplier:
+        return jsonify({"error": "Supplier not found"}), 404  # Supplier not found
+
+    user = mongo.db.users.find_one({"UserID": supplier['UserID']})
+    
+    return jsonify({
+        "message": "Success",
+        "data": {
+            "SuppName": supplier['SuppName'],
+            "fullname": user['FullName'] if user else None,
+            "email": supplier['Email'],
+            "phone": supplier['Phone'],
+            "address": supplier['Address'],
+            "role": user['Role'] if user else "Unknown",
+        }
+    }), 200
+
+@app.route('/supplier/product/<product_id>', methods=['POST'])
+def add_product_to_supplier(product_id):
     return render_template('add-product.html')
+
+@app.route('/add-product', methods=['GET'])
+def get_add_product():
+    return render_template('add-product.html')
+
+@app.route('/add-product', methods=['POST'])
+def create_product():
+    try:
+        data = request.json
+        print(data)
+
+        # Fetch the last inserted product to determine new ProdID
+        last_product = mongo.db.products.find_one(sort=[("ProdID", -1)])
+        new_prod_id = last_product["ProdID"] + 1 if last_product else 1
+
+        # Fetch supplier details
+        supplier = mongo.db.suppliers.find_one({"SuppName": data["SupplierName"]})
+        if not supplier:
+            return jsonify({"error": "Supplier not found"}), 400
+
+        new_product = {
+            "ProdID": new_prod_id,
+            "ProdName": data["ProdName"],
+            "Currency": "ILS",
+            "Category": data["Category"],
+            "Specifications": data["Specifications"],
+            "Img": data["Img"]
+        }
+
+        mongo.db.products.insert_one(new_product)
+
+        # Create supplier product entry
+        new_supplier_product = {
+            "SupplierProductID": mongo.db.supplier_products.count_documents({}) + 1,
+            "SuppID": supplier["SuppID"],
+            "ProdID": new_prod_id,
+            "Price1": data["Price1"],
+            "Amount1": data["Amount1"],
+            "Price2": data["Price2"],
+            "Amount2": data["Amount2"],
+            "StockQuantity": data["StockQuantity"]
+        }
+
+        mongo.db.supplier_products.insert_one(new_supplier_product)
+
+        return jsonify({"message": "Product added successfully!", "ProdID": new_prod_id}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/product-gallery', methods=['GET'])
 def product_gallery():

@@ -1,4 +1,23 @@
 // Helper Functions
+async function getUserData() {
+  const username = getCookie("username");
+
+  if (!username) {
+    alert('יש להתחבר למערכת כדי לבצע פעולה זו.')
+    window.location.href = "/login";  
+    return;
+  }
+
+  try {
+    const response = await fetch(`/user/${username}`);
+    const userData = await response.json();
+
+    return(userData)
+  }
+  catch (error) {
+    console.error("Error fetching user data:", error);
+  }
+}
 
 // Function to set a client-side cookie
 function setCookie(name, value, days) {
@@ -132,7 +151,7 @@ function showError(field, isError) {
       return;
     }
 
-    fetch(`/supplier/${username}`, {
+    fetch(`/supplier/by-username/${username}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"

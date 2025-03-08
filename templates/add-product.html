@@ -3,63 +3,242 @@
 {% block content %}
 
 <div class="contact-container">
-    <div class="add-new-product">
+    <!-- Buttons to choose action -->
+    <div id="create-or-add">
+        <h1>שיוך או יצירה של מוצר חדש לספק</h1>
+        <p>יש לבחור בין יצירה של מוצר חדש אשר לא קיים בקטלוג, <br>
+        לבין שיוך מוצר קיים לספק.</p>
+        <div class="create-or-add-btn-container">
+            <button id="create-btn">צור מוצר חדש</button>
+            <button id="add-btn">שייך מוצר קיים</button>
+        </div>    
+    </div>
+
+    <!-- Add New Product Form -->
+    <div id="add-new-product" class="form-container disabled">
         <h1>הוספת מוצר חדש</h1>
-
-        <form id="addProductForm" method="POST" onsubmit="return validateAddProduct()" action="/" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="product_id">מזהה מוצר:</label>
-                <input type="text" id="product_id" name="product_id" required>
-                <div class="error" id="product_id-error">נא להזין מזהה מוצר תקין</div>
-            </div>
-
+        <form id="addProductForm" onsubmit="createAnewProduct(event)" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="product_name">שם המוצר:</label>
                 <input type="text" id="product_name" name="product_name" required>
                 <div class="error" id="product_name-error">נא להזין שם מוצר</div>
             </div>
-
             <div class="form-group">
-                <label for="description">תיאור:</label>
-                <textarea id="description" name="description" required></textarea>
+                <label for="product_category_select">קטגוריה:</label>
+                <select id="product_category_select" name="product_category_select" required>
+                    <option value="מזון">מזון 🍎</option>
+                    <option value="אלקטרוניקה">אלקטוריקה 💻</option>
+                    <option value="רהיטים">רהיטים 🪑</option>
+                    <option value="ביגוד">ביגוד 👕</option>
+                    <option value="צעצועים">צעצועים 🧸</option>
+                    <option value="ספרים">ספרים 📚</option>
+                    <option value="קוסמטיקה">קוסמטיקה 👄</option>
+                    <option value="אחר">אחר 📦</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="product_description">תיאור:</label>
+                <textarea id="product_description" name="description" required></textarea>
                 <div class="error" id="description-error">נא להזין תיאור מוצר (מינ' 10 תווים)</div>
             </div>
-
             <div class="form-group">
-                <label for="image">תמונה:</label>
-                <input type="file" id="image" name="image" accept="image/*" required>
+                <label for="product_image">תמונה:</label>
+                <input type="text" id="product_image" name="product_image" required>
                 <div class="error" id="image-error">נא לבחור קובץ תמונה</div>
             </div>
-
             <div class="form-group">
-                <label for="price">מחיר:</label>
-                <input type="number" id="price" name="price" step="0.01" required>
-                <div class="error" id="price-error">נא להזין מחיר תקין</div>
+                <label for="product_price1"> מחיר לכמות ראשונה:</label>
+                <input type="number" id="product_price1" name="price1" step="0.01" required>
+                <div class="error" id="price1-error">נא להזין מחיר תקין</div>
             </div>
-
             <div class="form-group">
-                <label for="units">כמות יחידות:</label>
-                <input type="number" id="units" name="units" required>
+                <label for="product_amount1"> כמות לפריטים במחיר ראשון:</label>
+                <input type="number" id="product_amount1" name="amount1" step="0.01" required>
+                <div class="error" id="amount1-error">נא להזין כמות תקינה</div>
+            </div>
+             <div class="form-group">
+                <label for="product_price2"> מחיר לכמות שניה:</label>
+                <input type="number" id="product_price2" name="price2" step="0.01" required>
+                <div class="error" id="price2-error">נא להזין מחיר תקין</div>
+            </div>
+            <div class="form-group">
+                <label for="product_amount_2">כמות שניה:</label>
+                <input type="number" id="product_amount2" name="amount2" step="0.01" required>
+                <div class="error" id="amount2-error">נא להזין כמות תקינה</div>
+            </div>
+            <div class="form-group">
+                <label for="product_units"> כמות יחידות במלאי</label>
+                <input type="number" id="product_units" name="units" required>
                 <div class="error" id="units-error">נא להזין כמות יחידות תקינה</div>
             </div>
-
-            <div class="form-group">
-                <label for="supplier_name">שם הספק:</label>
-                <input type="text" id="supplier_name" name="supplier_name" required>
-                <div class="error" id="supplier_name-error">נא להזין שם ספק</div>
-            </div>
-
+            <div id="supplier-container"></div>
             <button type="submit">הוסף מוצר</button>
         </form>
-
-        <div class="success-message" id="success-message">
-            המוצר נוסף בהצלחה!
-        </div>
+        <div class="success-message" id="success-message">המוצר נוסף בהצלחה!</div>
+    </div> 
+    
+    <!-- Link Existing Product Form -->
+    <div id="link-existing-product" class="form-container disabled">
+        <h1>שיוך מוצר קיים לספק</h1>
+        <form id="linkProductForm" method="POST" action="/link-product">
+            <div class="form-group">
+                <label for="existing_product_id">מזהה מוצר:</label>
+                <input type="text" id="existing_product_id" name="existing_product_id" required>
+                <div class="error" id="existing_product_id-error">נא להזין מזהה מוצר תקין</div>
+            </div>
+            <div id="supplier-container"></div>
+            <button type="submit">שייך מוצר</button>
+        </form>
     </div> 
 </div>
 
 <script>
+let userData = null;
+document.addEventListener("DOMContentLoaded", async () => {
+    userData = await getUserData();
+    if (userData.Role === "Supplier" || userData.Role === "Admin") {
+        showAddButtons();
+        setupButtonHandlers(userData.Role);
+    } else {
+        alert('רק ספקים ומנהלים יכולים לבצע פעולה זו.');
+        window.location.href = "/login";
+    }
+});
+
+function showAddButtons() {
+    document.getElementById("create-or-add").classList.remove("disabled");
+}
+
+function setupButtonHandlers(role) {
+    document.getElementById("create-btn").addEventListener("click", () => {
+        showForm("add-new-product");
+        if (role == "Admin") {
+            addSupplierDropdown();
+        }
+    });
+    document.getElementById("add-btn").addEventListener("click", () => {
+        showForm("link-existing-product");
+    });
+}
+
+function showForm(formId) {
+    document.querySelectorAll(".form-container").forEach(form => form.classList.add("disabled"));
+    document.getElementById(formId).classList.remove("disabled");
+}
+
+async function addSupplierDropdown() {
+    try {
+        const response = await fetch("/suppliers");
+        let suppliers = await response.json();
+        suppliers = suppliers.data
+        let supplierDropdown = `<div class="form-group">
+                <label for="supplier_select">בחר ספק:</label>
+                <select id="supplier_select" name="supplier_name" required>
+                    ${suppliers.map(supplier => `<option value="${supplier.SuppName}">${supplier.SuppName}</option>`).join("")}
+                </select>
+            </div>`;
+        document.getElementById("supplier-container").innerHTML = supplierDropdown;
+    } catch (error) {
+        console.error("Error fetching suppliers:", error);
+    }
+}
+
+async function getSupplier() {
+    let SupplierToGet = userData.Role === 'Supplier' ? userData.UserName : document.getElementById('supplier_select').value;
+    try {
+        const response = await fetch(`/supplier/by-name/${SupplierToGet}`);
+        if (!response.ok) throw new Error("Failed to fetch supplier");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching supplier:", error);
+        return null;
+    }
+}
+
+async function createAnewProduct(event) {
+    event.preventDefault();
+
+    try {
+        let Supplier = await getSupplier();
+        // Ensure Supplier is fully loaded before proceeding
+        if (!Supplier.data.SuppName) {
+            alert("שגיאה: לא נמצא ספק.");
+            return;
+        }
+
+        let product = {
+            "SupplierName": Supplier.data.SuppName,  // Ensured SupplierName is set
+            "ProdName": document.getElementById('product_name').value,
+            "Category": document.getElementById('product_category_select').value,
+            "Specifications": document.getElementById('product_description').value,
+            "Img": document.getElementById('product_image').value,
+            "StockQuantity": parseInt(document.getElementById('product_units').value, 10),
+            "Currency": "ILS",
+            "Price1": parseFloat(document.getElementById('product_price1').value),
+            "Amount1": parseInt(document.getElementById('product_amount1').value, 10),
+            "Price2": parseFloat(document.getElementById('product_price2').value),
+            "Amount2": parseInt(document.getElementById('product_amount2').value, 10)
+        };
+
+        const response = await fetch('/add-product', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(product),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            alert("המוצר נוסף בהצלחה!");
+            document.getElementById("addProductForm").reset();
+        } else {
+            console.error("Error:", data.error);
+            alert("שגיאה בהוספת המוצר: " + data.error);
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("שגיאה בעת שליחת הנתונים לשרת.");
+    }
+}
+
 
 </script>
+
+<style>
+.disabled {
+    display: none;  
+}
+
+#create-or-add {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+#create-or-add h1 {
+    margin-bottom: 1rem;
+}
+
+.create-or-add-btn-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap:1rem;
+}
+
+button {
+    width: 10vw;
+    padding: 1rem;
+}
+
+#add-btn {
+    background-color: #5A8FBA;
+}
+
+#create-btn {
+    background-color: #9AA6B2;
+}
+</style>
 {% endblock %}
 
