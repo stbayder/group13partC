@@ -69,7 +69,6 @@ def profile():
 def get_all_suppliers():
     try:
         suppliers = list(mongo.db.suppliers.find({}))
-        print((suppliers))
         return jsonify({"message": "Success", "data": suppliers}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -174,6 +173,14 @@ def product_gallery():
     all_products = list(mongo.db.products.find())
     return render_template('product-gallery.html',products=all_products)
 
+@app.route('/products', methods=['GET'])
+def products():
+    try:
+        all_products = list(mongo.db.products.find({}))
+        return jsonify({"message": "Success", "data": all_products}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/product-info/<product_id>', methods=['GET'])
 def product_info(product_id):
     try:
@@ -221,6 +228,49 @@ def product_info(product_id):
 
             suppliers_info.append(supplier_info)
     return render_template('product-info.html', suppliers=suppliers_info,product=product)
+
+@app.route("/link-product", methods=["POST"])
+def link_product_to_supplier():
+    try:
+        data = request.json
+        product_id = data.get("productId")
+        supplier_name = data.get("supplierName")
+
+        # Validate input
+        if not product_id or not supplier_name:
+            return jsonify({"error": "מזהה מוצר וספק נדרשים"}), 400
+
+        # Ensure the product exists
+        product = mongo.db.products.find_one({"ProdID": product_id})
+        if not product:
+            return jsonify({"error": "המוצר לא נמצא"}), 404
+
+        # check supplier exist
+        supplier = mongo.db.suppliers.find_one({'SuppName':supplier_name})
+        if not supplier:
+            return jsonify({"error": "ספק לא נמצא"}), 404
+
+        # Check if the link already exists
+        existing_link = mongo.db.supplier_products.find_one({
+            "ProdID": product_id,
+            "SuppID": supplier['SuppID']
+        })
+        if existing_link:
+            return jsonify({"error": "המוצר כבר משויך לספק זה"}), 400
+
+        # Insert new supplier-product link
+        mongo.db.supplier_products.insert_one({
+            "ProdID": product_id,
+            "SuppID": supplier['SuppID'],
+            "Price1":
+            "linked_at": datetime.datetime.utcnow()
+        })
+
+        return jsonify({"message": "המוצר שויך בהצלחה!"}), 200
+
+    except Exception as e:
+        print("Error linking product:", e)
+        return jsonify({"error": "שגיאה בשרת"}), 500
 
 
 @app.route('/about', methods=['GET'])

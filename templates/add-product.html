@@ -71,7 +71,7 @@
                 <input type="number" id="product_units" name="units" required>
                 <div class="error" id="units-error">נא להזין כמות יחידות תקינה</div>
             </div>
-            <div id="supplier-container"></div>
+            <div id="supplier-container-add"></div>
             <button type="submit">הוסף מוצר</button>
         </form>
         <div class="success-message" id="success-message">המוצר נוסף בהצלחה!</div>
@@ -79,21 +79,33 @@
     
     <!-- Link Existing Product Form -->
     <div id="link-existing-product" class="form-container disabled">
-        <h1>שיוך מוצר קיים לספק</h1>
-        <form id="linkProductForm" method="POST" action="/link-product">
+        <h1>שיוך מוצר קיים לספק</h1>  
+        <form id="linkProductForm">
+            <div class="search-container">
+                <input type="text" id="product-search" placeholder="חיפוש מוצרים...">
+            </div>
+            <div id="product-list"></div>
             <div class="form-group">
                 <label for="existing_product_id">מזהה מוצר:</label>
-                <input type="text" id="existing_product_id" name="existing_product_id" required>
+                <div class="pagination">
+                    <button id="prev-btn" onclick="changePage(-1)">הקודם</button>
+                    <span id="page-info"></span>
+                    <button id="next-btn" onclick="changePage(1)">הבא</button>
+                </div>
                 <div class="error" id="existing_product_id-error">נא להזין מזהה מוצר תקין</div>
             </div>
-            <div id="supplier-container"></div>
-            <button type="submit">שייך מוצר</button>
+            <div id="supplier-container-link"></div>
+            <button onclick="linkProductToSupplier(event)">שייך מוצר</button>
         </form>
     </div> 
 </div>
 
 <script>
 let userData = null;
+let allProducts = [];
+let currentPage = 1;
+const productsPerPage = 9;
+
 document.addEventListener("DOMContentLoaded", async () => {
     userData = await getUserData();
     if (userData.Role === "Supplier" || userData.Role === "Admin") {
@@ -105,19 +117,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
+// Event listener for search
+document.getElementById("product-search").addEventListener("input", () => {
+    currentPage = 1;
+    displayProducts();
+});
 function showAddButtons() {
     document.getElementById("create-or-add").classList.remove("disabled");
 }
 
 function setupButtonHandlers(role) {
+    console.log(role)
     document.getElementById("create-btn").addEventListener("click", () => {
         showForm("add-new-product");
-        if (role == "Admin") {
-            addSupplierDropdown();
+        if (role === "Admin") {
+            addSupplierDropdown("supplier-container-add");
         }
     });
+    
     document.getElementById("add-btn").addEventListener("click", () => {
         showForm("link-existing-product");
+        if (role === "Admin") {
+            addSupplierDropdown("supplier-container-link");
+        }
     });
 }
 
@@ -126,18 +148,24 @@ function showForm(formId) {
     document.getElementById(formId).classList.remove("disabled");
 }
 
-async function addSupplierDropdown() {
+async function addSupplierDropdown(containerId) {
     try {
         const response = await fetch("/suppliers");
         let suppliers = await response.json();
-        suppliers = suppliers.data
+        suppliers = suppliers.data;
+
         let supplierDropdown = `<div class="form-group">
-                <label for="supplier_select">בחר ספק:</label>
-                <select id="supplier_select" name="supplier_name" required>
-                    ${suppliers.map(supplier => `<option value="${supplier.SuppName}">${supplier.SuppName}</option>`).join("")}
-                </select>
-            </div>`;
-        document.getElementById("supplier-container").innerHTML = supplierDropdown;
+            <label for="supplier_select">בחר ספק:</label>
+            <select id="supplier_select" name="supplier_name" required>
+                ${suppliers.map(supplier => `<option value="${supplier.SuppName}">${supplier.SuppName}</option>`).join("")}
+            </select>
+        </div>`;
+
+        document.getElementById(containerId).innerHTML = supplierDropdown;
+        console.log(containerId)
+        if (containerId == "supplier-container-link"){
+            loadExistingProducts()
+        }
     } catch (error) {
         console.error("Error fetching suppliers:", error);
     }
@@ -200,6 +228,101 @@ async function createAnewProduct(event) {
     }
 }
 
+async function loadExistingProducts() {
+    try {
+        const response = await fetch("/products");
+        const { data: products } = await response.json();
+        allProducts = products;
+        displayProducts();
+    } catch (error) {
+        console.error("Error loading products:", error);
+    }
+}
+
+function displayProducts() {
+    const productList = document.getElementById("product-list");
+    productList.innerHTML = "";
+
+    let filteredProducts = filterProducts(allProducts);
+    let paginatedProducts = paginate(filteredProducts, currentPage, productsPerPage);
+
+    paginatedProducts.forEach(product => {
+        productList.innerHTML += `
+            <div class="product-card" onclick="selectProduct('${product.ProdID}')">
+                <img src="${product.Img}" alt="${product.ProdName}">
+                <p>${product.ProdName}</p>
+            </div>
+        `;
+    });
+
+    updatePagination(filteredProducts.length);
+}
+
+function filterProducts(products) {
+    const searchQuery = document.getElementById("product-search").value.toLowerCase();
+    return products.filter(product => product.ProdName.toLowerCase().includes(searchQuery));
+}
+
+function paginate(items, page, perPage) {
+    const start = (page - 1) * perPage;
+    return items.slice(start, start + perPage);
+}
+
+function updatePagination(totalItems) {
+    document.getElementById("page-info").textContent = `עמוד ${currentPage} מתוך ${Math.ceil(totalItems / productsPerPage)}`;
+    document.getElementById("prev-btn").disabled = currentPage === 1;
+    document.getElementById("next-btn").disabled = currentPage * productsPerPage >= totalItems;
+}
+
+function changePage(step) {
+    currentPage += step;
+    displayProducts();
+}
+
+function selectProduct(productId) {
+    document.getElementById("existing_product_id").value = productId;
+}
+
+async function linkProductToSupplier(event) {
+    event.preventDefault();
+
+    const productId = document.getElementById("existing_product_id").value;
+    const supplierSelect = document.getElementById("supplier_select");
+    const supplierName = supplierSelect ? supplierSelect.value : userData.UserName; // If Admin, take from dropdown; otherwise, use logged-in Supplier
+
+    // Validate inputs
+    if (!productId) {
+        alert("נא לבחור מוצר לשיוך.");
+        return;
+    }
+    if (!supplierName) {
+        alert("שגיאה: לא נמצא ספק.");
+        return;
+    }
+
+    const requestData = { productId, supplierName };
+
+    try {
+        const response = await fetch("/link-product", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestData),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert("המוצר שויך בהצלחה לספק!");
+            document.getElementById("linkProductForm").reset();
+        } else {
+            alert("שגיאה: " + data.error);
+        }
+    } catch (error) {
+        console.error("Error linking product:", error);
+        alert("שגיאה בחיבור לשרת.");
+    }
+}
+
 
 </script>
 
@@ -238,6 +361,26 @@ button {
 
 #create-btn {
     background-color: #9AA6B2;
+}
+
+#linkProductForm{
+    max-width:700px;
+}
+
+#product-list{
+    width:100%;
+    gap: 1rem;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+.product-card{
+    width:10vw;
+}
+
+.product-card > img{ 
+    width:50%;
 }
 </style>
 {% endblock %}
