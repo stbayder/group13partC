@@ -127,7 +127,6 @@ function showAddButtons() {
 }
 
 function setupButtonHandlers(role) {
-    console.log(role)
     document.getElementById("create-btn").addEventListener("click", () => {
         showForm("add-new-product");
         if (role === "Admin") {
@@ -162,7 +161,6 @@ async function addSupplierDropdown(containerId) {
         </div>`;
 
         document.getElementById(containerId).innerHTML = supplierDropdown;
-        console.log(containerId)
         if (containerId == "supplier-container-link"){
             loadExistingProducts()
         }
@@ -174,7 +172,7 @@ async function addSupplierDropdown(containerId) {
 async function getSupplier() {
     let SupplierToGet = userData.Role === 'Supplier' ? userData.UserName : document.getElementById('supplier_select').value;
     try {
-        const response = await fetch(`/supplier/by-name/${SupplierToGet}`);
+        const response = await fetch(`/suppliers/by-name/${SupplierToGet}`);
         if (!response.ok) throw new Error("Failed to fetch supplier");
         return await response.json();
     } catch (error) {
@@ -208,7 +206,7 @@ async function createAnewProduct(event) {
             "Amount2": parseInt(document.getElementById('product_amount2').value, 10)
         };
 
-        const response = await fetch('/add-product', {
+        const response = await fetch('/products', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(product),

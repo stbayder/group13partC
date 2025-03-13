@@ -9,7 +9,7 @@ async function getUserData() {
   }
 
   try {
-    const response = await fetch(`/user/${username}`);
+    const response = await fetch(`/users/${username}`);
     const userData = await response.json();
 
     return(userData)
@@ -107,7 +107,7 @@ function showError(field, isError) {
     var username = document.forms['login']['username'].value;
     var password = document.forms['login']['password'].value;
 
-    fetch("/login", {
+    fetch("/auth/login", {
         method: "POST",
         body: JSON.stringify({
             userName: username,
@@ -127,7 +127,7 @@ function showError(field, isError) {
             document.forms['login']['username'].value = "";
             document.forms['login']['password'].value = "";
 
-            window.location.href = "/profile";  
+            // window.location.href = "/profile";  
         } else {
           // Unsuccessful login logic
             alert("Login failed! " + (data.error || ""));
@@ -151,7 +151,7 @@ function showError(field, isError) {
       return;
     }
 
-    fetch(`/supplier/by-username/${username}`, {
+    fetch(`/suppliers/by-username/${username}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
