@@ -41,7 +41,29 @@ function getCookie(name) {
     }
     return null;
 }
-  
+
+async function saveSupplierToLocalStorage(userData) {
+  if (userData.Role === "Supplier") {
+      try {
+          const response = await fetch(`/suppliers/by-username/${userData.UserName}`, {
+              method: "GET",
+              headers: { "Content-Type": "application/json" },
+          });
+
+          const data = await response.json();
+          if (response.ok) {
+              let supplierID = data.data.SuppID;
+              localStorage.setItem("Supplier", supplierID);
+          } else {
+              alert("שגיאה: " + data.error);
+          }
+      } catch (error) {
+          console.error("Error fetching supplier ID:", error);
+          alert("שגיאה בחיבור לשרת.");
+      }
+  }
+}
+
   // Function to show or hide error messages for form validation
 function showError(field, isError) {
     const errorElement = document.getElementById(`${field}-error`);

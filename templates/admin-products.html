@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Admin Products {% endblock %}
+{% block content %}
+<div class="admin-products-container">
+    <div class="table-container">
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th>מזהה מוצר</th>
+                    <th>שם</th>
+                    <th>קטגוריה</th>
+                    <th>מספר ספקים שמוכרים את הפריט</th>
+                    <th>פעולות</th>
+                </tr>
+            </thead>
+            <tbody id="products-table-body">
+                <!-- Product rows will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="pagination-container">
+        <button id="prevPage" class="pagination-button">הקודם</button>
+        <span id="page-info">עמוד <span id="currentPageDisplay">1</span> מתוך <span id="totalPagesDisplay">1</span></span>
+        <button id="nextPage" class="pagination-button">הבא</button>
+    </div>
+</div>
+
+<script>
+let currentPage = 1;
+const rowsPerPage = 8;
+let allProducts = {{ products | safe }};
+let totalPages = Math.ceil(allProducts.length / rowsPerPage);
+
+let userData = null;
+document.addEventListener("DOMContentLoaded", async () => {
+    userData = await getUserData();
+    if(userData.Role != "Admin"){
+        alert("אין לך גישה לעמוד הזה");
+        window.location.href = "/login";
+    }
+    
+    updatePaginationInfo();
+    displayProductsForCurrentPage();
+    
+    // Add event listeners for pagination buttons
+    document.getElementById('prevPage').addEventListener('click', goToPreviousPage);
+    document.getElementById('nextPage').addEventListener('click', goToNextPage);
+});
+
+function createProductRow(product) {
+    return `
+        <tr>
+            <td>${product.ProdID}</td>
+            <td>${product.ProdName}</td>
+            <td>${product.Category}</td>
+            <td>${product.numberOfSupps}</td>
+            <td>
+                <button>ערוך</button>
+                <button>הצג</button>
+                <button>מחק</button>
+            </td>
+        </tr>
+    `;
+} 
+
+function displayProductsForCurrentPage() {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, allProducts.length);
+    const productsToDisplay = allProducts.slice(startIndex, endIndex);
+    
+    const tableBody = document.getElementById('products-table-body');
+    tableBody.innerHTML = productsToDisplay.map(createProductRow).join('');
+}
+
+function updatePaginationInfo() {
+    document.getElementById('currentPageDisplay').textContent = currentPage;
+    document.getElementById('totalPagesDisplay').textContent = totalPages;
+    
+    // Enable/disable pagination buttons based on current page
+    document.getElementById('prevPage').disabled = currentPage === 1;
+    document.getElementById('nextPage').disabled = currentPage === totalPages;
+}
+
+function goToPreviousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        updatePaginationInfo();
+        displayProductsForCurrentPage();
+    }
+}
+
+function goToNextPage() {
+    if (currentPage < totalPages) {
+        currentPage++;
+        updatePaginationInfo();
+        displayProductsForCurrentPage();
+    }
+}
+</script>
+
+<style>
+.admin-products-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    direction: rtl;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+.products-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: right;
+}
+
+.products-table th, .products-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.products-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.products-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.pagination-button {
+    padding: 8px 15px;
+    margin: 0 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+
+.pagination-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#page-info {
+    margin: 0 15px;
+}
+</style>
+{% endblock %}

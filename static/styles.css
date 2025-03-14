@@ -540,3 +540,29 @@ body {
 .more-info-btn:hover {
     background-color: #2c5282;
 }
+/* supplier-product table */
+.supplier-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.supplier-table th,
+.supplier-table td {
+    border: 1px solid #e2e8f0;
+    padding: 0.75rem;
+    text-align: right;
+}
+
+.supplier-table th {
+    background-color: #f8fafc;
+    font-weight: bold;
+}
+
+.supplier-table tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+.table-container {
+    overflow-x: auto;
+}

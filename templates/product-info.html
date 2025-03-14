@@ -36,14 +36,12 @@
         </table>
     </div>
 </div>
-
 <script>
 const suppliersOfProduct = {{ suppliers|tojson }};
 const productData = {{ product|tojson }};
 
 let minPrice = null;
 let maxPrice = 0;
-
 for (let supp of suppliersOfProduct) {
     let prices = [supp.Price1, supp.Price2];
     if(minPrice === null){
@@ -123,32 +121,6 @@ populateSupplierTable();
 .product-description {
     margin-bottom: 1rem;
     line-height: 1.6;
-}
-
-.supplier-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-}
-
-.supplier-table th,
-.supplier-table td {
-    border: 1px solid #e2e8f0;
-    padding: 0.75rem;
-    text-align: right;
-}
-
-.supplier-table th {
-    background-color: #f8fafc;
-    font-weight: bold;
-}
-
-.supplier-table tr:nth-child(even) {
-    background-color: #f8fafc;
-}
-
-.table-container {
-    overflow-x: auto;
 }
 
 @media (max-width: 768px) {

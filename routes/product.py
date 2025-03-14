@@ -55,7 +55,7 @@ def product_info(product_id):
         product_id = int(product_id)
     except ValueError:
         return "Invalid product ID", 400  
-    
+
     # Query supplier_products to find all suppliers offering this product
     suppliers_of_product = convert_objectid(list(mongo.db.supplier_products.find({"ProdID": product_id})))
     if not suppliers_of_product:
@@ -69,11 +69,9 @@ def product_info(product_id):
 
     # Fetch supplier details for each entry, and combine data from supplier_product and supplier
     suppliers_info = []
-
     for entry in suppliers_of_product:
         supplier = mongo.db.suppliers.find_one({"SuppID": entry["SuppID"]})
 
-        # Find a matching discount for this supplier and product
         supplier_discount = next((disc for disc in discounts if disc['SuppID'] == entry['SuppID']), None)
 
         if supplier:
@@ -89,14 +87,18 @@ def product_info(product_id):
                 "SuppID": supplier["SuppID"],
                 "Stock": entry["StockQuantity"],
             }
-            
-            # Only attach the discount if it exists for this supplier
+
             if supplier_discount:
                 supplier_info["Discount"] = supplier_discount
 
             suppliers_info.append(supplier_info)
-    return render_template('product-info.html', suppliers=suppliers_info,product=product)
-  
+
+    # Check if request expects JSON response
+    if request.headers.get("Accept") == "application/json" or request.args.get("json") == "true":
+        return jsonify({"product": product, "suppliers": suppliers_info})
+
+    return render_template('product-info.html', suppliers=suppliers_info, product=product)
+
 @product_bp.route("/<product_id>", methods=["PUT"])
 def update_product(product_id):
     data = request.json

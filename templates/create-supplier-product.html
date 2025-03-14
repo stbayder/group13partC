@@ -35,7 +35,7 @@ const productsPerPage = 9;
 document.addEventListener("DOMContentLoaded", async () => {
     userData = await getUserData();
     if(userData.Role =="Supplier"){
-        saveSupplierToLocalStorage()
+        saveSupplierToLocalStorage(userData)
     }
     if (userData.Role === "Supplier" || userData.Role === "Admin") {
         showLinkProductSection();
@@ -48,27 +48,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
-async function saveSupplierToLocalStorage() {
-    if (userData.Role === "Supplier") {
-        try {
-            const response = await fetch(`/suppliers/by-username/${userData.UserName}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
-            });
 
-            const data = await response.json();
-            if (response.ok) {
-                let supplierID = data.data.SuppID;
-                localStorage.setItem("addProduct-Supplier", supplierID);
-            } else {
-                alert("שגיאה: " + data.error);
-            }
-        } catch (error) {
-            console.error("Error fetching supplier ID:", error);
-            alert("שגיאה בחיבור לשרת.");
-        }
-    }
-}
 
 async function setupButtonHandlers(role) {
     if (role === "Admin") {
@@ -130,6 +110,7 @@ async function addSupplierDropdown(containerId) {
         let supplierDropdown = `<div class="form-group">
             <label for="supplier_select">בחר ספק:</label>
             <select id="supplier_select" name="supplier_name" required onchange="loadUnlinkedProducts()">
+                <option value="">-- בחר ספק --</option>
                 ${suppliers.map(supplier => `<option value="${supplier.SuppID}">${supplier.SuppName}</option>`).join("")}
             </select>
         </div>`;
@@ -141,9 +122,9 @@ async function addSupplierDropdown(containerId) {
 }
 
 async function loadUnlinkedProducts() {
-    let supplierID = localStorage.getItem('addProduct-Supplier') ? localStorage.getItem('addProduct-Supplier') : null ;
+    let supplierID = localStorage.getItem('Supplier') ? localStorage.getItem('Supplier') : null ;
 
-    if(userData.Role == "Supplier" && !localStorage.getItem('addProduct-Supplier')){
+    if(userData.Role == "Supplier" && !localStorage.getItem('Supplier')){
         try {
             const response = await fetch(`/suppliers/by-username/${userData.UserName}`, {
                 method: "GET",
@@ -161,7 +142,7 @@ async function loadUnlinkedProducts() {
         
             alert("שגיאה בחיבור לשרת.");
         }
-    }   else if (userData.Role == "Admin" && !localStorage.getItem('addProduct-Supplier')){
+    }   else if (userData.Role == "Admin" && !localStorage.getItem('Supplier')){
         supplierID = document.getElementById("supplier_select").value
     } 
 
@@ -171,8 +152,8 @@ async function loadUnlinkedProducts() {
         if (response.ok) {
             const data = await response.json();
             allProducts = data.data; // assuming the response contains an array of products
-            localStorage.setItem("addProduct-Supplier",supplierID)
-            localStorage.setItem("addProduct-Supplier-unlinkedProducts",JSON.stringify(allProducts))
+            localStorage.setItem("Supplier",supplierID)
+            localStorage.setItem("Supplier-unlinkedProducts",JSON.stringify(allProducts))
             displayProducts(allProducts);
         } else {
             alert('לא נמצאו מוצרים שלא שויכו לספק.');
@@ -185,9 +166,9 @@ async function loadUnlinkedProducts() {
 
 function displayProducts(allProducts) {  
     const supplierSelect = document.getElementById("supplier_select");
-    const storedProducts = localStorage.getItem('addProduct-Supplier-unlinkedProducts');
+    const storedProducts = localStorage.getItem('Supplier-unlinkedProducts');
 
-    if (!allProducts && (supplierSelect?.value === localStorage.getItem('addProduct-Supplier') || userData.Role === "Supplier")) {
+    if (!allProducts && (supplierSelect?.value === localStorage.getItem('Supplier') || userData.Role === "Supplier")) {
         allProducts = storedProducts ? JSON.parse(storedProducts) : null;
     }
     const productList = document.getElementById("product-list");
@@ -214,7 +195,7 @@ function displayProducts(allProducts) {
 
 function filterProducts(products) {
     if(!products){
-        products = JSON.parse(localStorage.getItem('addProduct-Supplier-unlinkedProducts'));
+        products = JSON.parse(localStorage.getItem('Supplier-unlinkedProducts'));
     }
     const searchQuery = document.getElementById("product-search").value.toLowerCase();
     return products.filter(product => product.ProdName.toLowerCase().includes(searchQuery));
@@ -273,7 +254,7 @@ function selectProduct(productId, productName) {
 async function linkProductToSupplier(event) {
     event.preventDefault();
 
-    const supplierID = parseInt(localStorage.getItem('addProduct-Supplier'));
+    const supplierID = parseInt(localStorage.getItem('Supplier'));
     const productId = document.getElementById("selected_product_id").value;
     const price1 = parseFloat(document.getElementById("price1").value);
     const amount1 = parseInt(document.getElementById("amount1").value, 10);

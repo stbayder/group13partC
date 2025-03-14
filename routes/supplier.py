@@ -43,7 +43,6 @@ def get_supplier_data(username):
 
 @supplier_bp.route('/by-name/<supplier_name>', methods=['GET'])
 def get_supplier_by_name(supplier_name):
-    print(supplier_name)
     supplier = mongo.db.suppliers.find_one({"SuppName": supplier_name})
     if not supplier:
         return jsonify({"error": "Supplier not found"}), 404  # Supplier not found
@@ -81,12 +80,17 @@ def get_supplier_products(supplierID):
         # Convert ObjectId fields to strings
         supplier_products = convert_objectid(supplier_products)
 
+        # Fetch product details for each supplier product
+        for sp in supplier_products:
+            product = mongo.db.products.find_one({"ProdID": sp["ProdID"]})
+            sp["ProductDetails"] = convert_objectid(product) if product else None
+
         return jsonify({"message": "Success", "data": supplier_products}), 200
 
     except Exception as e:
         print("Error fetching supplier products:", e)
         return jsonify({"error": "Internal Server Error"}), 500
-    
+
 @supplier_bp.route('/products/not-linked/<supplierID>', methods=["GET"])
 def get_products_not_linked_to_supplier(supplierID):
     try:
@@ -117,7 +121,6 @@ def get_products_not_linked_to_supplier(supplierID):
     except Exception as e:
         print("Error fetching products not linked to supplier:", e)
         return jsonify({"error": "Internal Server Error"}), 500
-
 
 @supplier_bp.route('/products/<supplier_id>/<product_id>', methods=["POST"])
 def add_supplier_product(supplier_id, product_id):

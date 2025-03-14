@@ -27,8 +27,227 @@
             <span class="value" id="profile_company"></span>
         </div>
     </div>
+    <div id="table-container" class="invis">
+        <h1 id="supplier-product-header"> רשימת פריטים</h1>
+        <table class="supplier-table">
+            <thead>
+                <tr>
+                    <th>שם פריט</th>
+                    <th>קטגוריה</th>
+                    <th>מחיר רגיל</th>
+                    <th>מחיר סיטונאי</th>
+                    <th>יחידות במלאי</th>
+                    <th>הנחה</th>
+                </tr>
+            </thead>
+            <tbody id="supplierTableBody">
+                <!-- Supplier rows will be dynamically inserted here -->
+            </tbody>
+        </table>
+        
+        <!-- Pagination Controls -->
+        <div class="pagination-controls" id="paginationControls">
+            <button id="prevPage" class="pagination-button">&lt; הקודם</button>
+            <span id="pageInfo" class="page-info">עמוד <span id="currentPage">1</span> מתוך <span id="totalPages">1</span></span>
+            <button id="nextPage" class="pagination-button">הבא &gt;</button>
+        </div>
+    </div>
+    <div id="adminButtons" class="invis">
+    </div>
 </div>
 <script>
-    populateProfilePage()
+
+// Pagination variables
+let currentPage = 1;
+const rowsPerPage = 8;
+let allSupplierProducts = [];
+
+let userData = null;
+document.addEventListener("DOMContentLoaded", async () => {
+    populateProfilePage();
+    userData = await getUserData();
+    if(!['Supplier','Admin'].includes(userData.Role)){
+        alert('רק ספקים ומנהלים יכולים לבצע פעולה זו.');
+        window.location.href = "/login";
+    }
+    if(userData.Role =="Supplier"){
+        document.getElementById('table-container').classList.remove('invis')
+        saveSupplierToLocalStorage(userData);
+        allSupplierProducts = await getSupplierProducts(localStorage.getItem('Supplier'));
+        setupPagination();
+        displayCurrentPage();
+    }
+    if(userData.Role == 'Admin'){
+        createAdminButtons()
+    }
+    
+    // Add event listeners for pagination buttons
+    document.getElementById('prevPage').addEventListener('click', goToPreviousPage);
+    document.getElementById('nextPage').addEventListener('click', goToNextPage);
+});
+
+function setupPagination() {
+    const totalPages = Math.ceil(allSupplierProducts.length / rowsPerPage);
+    document.getElementById('totalPages').textContent = totalPages;
+    updatePaginationControls();
+}
+
+function displayCurrentPage() {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, allSupplierProducts.length);
+    const currentPageItems = allSupplierProducts.slice(startIndex, endIndex);
+    
+    populateSupplierTable(currentPageItems);
+    document.getElementById('currentPage').textContent = currentPage;
+}
+
+function goToPreviousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        displayCurrentPage();
+        updatePaginationControls();
+    }
+}
+
+function goToNextPage() {
+    const totalPages = Math.ceil(allSupplierProducts.length / rowsPerPage);
+    if (currentPage < totalPages) {
+        currentPage++;
+        displayCurrentPage();
+        updatePaginationControls();
+    }
+}
+
+function updatePaginationControls() {
+    const totalPages = Math.ceil(allSupplierProducts.length / rowsPerPage);
+    
+    // Update prev button state
+    const prevButton = document.getElementById('prevPage');
+    prevButton.disabled = currentPage === 1;
+    prevButton.classList.toggle('disabled', currentPage === 1);
+    
+    // Update next button state
+    const nextButton = document.getElementById('nextPage');
+    nextButton.disabled = currentPage === totalPages;
+    nextButton.classList.toggle('disabled', currentPage === totalPages);
+    
+    // Hide pagination controls if there's only one page
+    const paginationControls = document.getElementById('paginationControls');
+    paginationControls.style.display = totalPages <= 1 ? 'none' : 'flex';
+}
+
+function populateSupplierTable(supplierProducts) {
+    let role = userData.Role;
+    const tableBody = document.getElementById('supplierTableBody');
+    if(role == 'Supplier' && tableBody){
+        tableBody.innerHTML = supplierProducts.map(createSupplierRow).join('');
+    }
+}
+
+function createSupplierRow(supplier) {
+    let productInfo = supplier.ProductDetails;
+    if (!productInfo) {
+        return `
+            <tr>
+                <td>Unknown Product</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+            </tr>
+        `;
+    }
+
+    return `
+        <tr>
+            <td>${productInfo.ProdName}</td>
+            <td>${productInfo.Category}</td>
+            <td>₪${supplier.Price1} ליח' עד ${supplier.Amount1} יח'</td>
+            <td>₪${supplier.Price2} ליח' מ ${supplier.Amount2} יח' ומעלה</td>
+            <td>${supplier.StockQuantity}</td>
+            <td>${supplier.Discount ? supplier.Discount : ""}</td>
+        </tr>
+    `;
+}
+
+async function getSupplierProducts(supplierID){
+    let supplierProducts = null;
+    try {
+        const response = await fetch(`/suppliers/products/${supplierID}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            supplierProducts = data.data;
+            localStorage.setItem('Supplier-products', JSON.stringify(data.data));
+        } else {
+            alert("שגיאה: " + data.error);
+        }
+    } catch (error) {
+        console.error("Error getting supplier Products:", error);
+        alert("שגיאה בחיבור לשרת.");
+    }
+    return supplierProducts;
+}
+
+function createAdminButtons(){
+    let container = document.getElementById('adminButtons');
+    container.classList.remove('invis')
+    container.innerHTML=`
+            <h1>פעולות אדמין</h1>
+            <button class="users-btn" onclick="window.location = '/admin/users'">משתמשים</button>
+            <button class="prodcuts-btn" onclick="window.location = '/admin/products'">מוצרים</button>
+            <button class="supplier-products-btn" onclick="window.location = '/admin/supplier-products'">מוצרי ספק</button>
+    `
+}
+
 </script>
+
+<style>
+#supplier-product-header {
+    margin-top: 5vh;
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    direction: rtl;
+}
+
+.pagination-button:hover {
+    background-color: #e9ecef;
+}
+
+.pagination-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-info {
+    margin: 0 10px;
+    font-size: 14px;
+}
+
+/* Make sure table rows have consistent height */
+.supplier-table tr {
+    height: 48px;
+}
+
+#table-container {
+    min-height: 500px; /* Keep consistent height even with fewer rows */
+}
+
+.invis{
+    display: none;
+}
+
+#adminButtons{
+    margin-top: 5vh;
+}
+</style>
 {% endblock %}

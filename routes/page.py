@@ -2,7 +2,6 @@ from flask import Blueprint, render_template
 from utilities.db_connector import mongo
 from utilities.utils import convert_objectid
 
-
 page_bp = Blueprint("pages", __name__)
 
 @page_bp.route("/")
@@ -33,3 +32,18 @@ def loginPage():
 @page_bp.route('/profile', methods=['GET'])
 def profile():
     return render_template('profile.html')
+
+@page_bp.route('/admin/products', methods=['GET'])
+def adminProductsPage():
+    # Get all products
+    all_products = list(mongo.db.products.find())
+    
+    for product in all_products:
+        product_id = product['ProdID']
+        # Count supplier_products documents where ProdID matches this product's ID
+        supplier_count = mongo.db.supplier_products.count_documents({"ProdID": product_id})
+        product['numberOfSupps'] = supplier_count
+    
+    products_json = convert_objectid(all_products)
+    
+    return render_template('admin-products.html', products=products_json)
