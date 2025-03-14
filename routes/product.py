@@ -99,11 +99,83 @@ def product_info(product_id):
 
     return render_template('product-info.html', suppliers=suppliers_info, product=product)
 
-@product_bp.route("/<product_id>", methods=["PUT"])
-def update_product(product_id):
-    data = request.json
-    return jsonify({"message": f"Product {product_id} updated", "data": data}), 200
+@product_bp.route('/<product_id>', methods=["PUT"])
+def edit_product(product_id):
+    # Convert product_id to integer
+    product_id = int(product_id)
+    
+    # Get the JSON data from the request
+    product_data = request.get_json()
+    
+    try:
+        # Ensure the product exists before updating
+        existing_product = mongo.db.products.find_one({'ProdID': product_id})
+        if not existing_product:
+            return jsonify({'success': False, 'message': 'מוצר לא נמצא'}), 404
+        
+        # Make sure ProdID is not changed
+        product_data['ProdID'] = product_id
+        
+        print(f"Updating product with ProdID: {product_id}")
+        print(f"Update data: {product_data}")
+        
+        result = mongo.db.products.update_one(
+            {'ProdID': product_id},  
+            {'$set': product_data}   
+        )
+        
+        print(f"Update result: {result.raw_result}")
+        
+        if result.modified_count > 0:
+            return jsonify({'success': True, 'message': 'המוצר עודכן בהצלחה'}), 200
+        elif result.matched_count > 0:
+            return jsonify({'success': True, 'message': 'לא בוצעו שינויים במוצר'}), 200
+        else:
+            return jsonify({'success': False, 'message': 'מוצר לא נמצא'}), 404
+    
+    except Exception as e:
+        print(f"Error updating product: {str(e)}")
+        return jsonify({'success': False, 'message': 'אירעה שגיאה בעדכון המוצר'}), 500
 
-# @product_bp.route("/<product_id>", methods=["DELETE"])
-# def delete_product(product_id):
-#     return jsonify({"message": f"Product {product_id} deleted"}), 200
+@product_bp.route('/<product_id>', methods=['DELETE'])
+def delete_product(product_id):
+    try:
+        # Convert product_id to integer since ProdID is stored as an integer
+        product_id = int(product_id)
+        
+        # Authentication check using the username from cookie
+        username = request.cookies.get('username')
+        print(username)
+        if not username:
+            return jsonify({'success': False, 'message': 'אינך מחובר למערכת'}), 401
+        
+        # Verify user is an admin
+        user = mongo.db.users.find_one({'UserName': username})
+        if not user or user.get('Role') != 'Admin':
+            return jsonify({'success': False, 'message': 'אין לך הרשאות למחוק מוצרים'}), 403
+        
+        # Check if product exists
+        product = mongo.db.products.find_one({'ProdID': product_id})
+        if not product:
+            return jsonify({'success': False, 'message': 'מוצר לא נמצא'}), 404
+            
+        # First, delete all supplier products related to this product
+        supplier_products_result = mongo.db.supplier_products.delete_many({'ProdID': product_id})
+        
+        # Then delete the product itself
+        product_result = mongo.db.products.delete_one({'ProdID': product_id})
+        
+        if product_result.deleted_count > 0:
+            return jsonify({
+                'success': True, 
+                'message': f'המוצר נמחק בהצלחה יחד עם {supplier_products_result.deleted_count} הצעות מספקים',
+                'deleted_supplier_products': supplier_products_result.deleted_count
+            }), 200
+        else:
+            return jsonify({'success': False, 'message': 'אירעה שגיאה במחיקת המוצר'}), 500
+            
+    except ValueError:
+        return jsonify({'success': False, 'message': 'מזהה מוצר לא תקין'}), 400
+    except Exception as e:
+        print(f"Error deleting product: {str(e)}")
+        return jsonify({'success': False, 'message': 'אירעה שגיאה במחיקת המוצר'}), 500

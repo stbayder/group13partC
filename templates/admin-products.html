@@ -2,6 +2,7 @@
 {% block title %}Admin Products {% endblock %}
 {% block content %}
 <div class="admin-products-container">
+    <h1>מוצרים</h1>
     <div class="table-container">
         <table class="products-table">
             <thead>
@@ -26,11 +27,24 @@
     </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <h2>אישור מחיקה</h2>
+        <p>האם אתה בטוח שברצונך למחוק את המוצר הזה?</p>
+        <div class="modal-buttons">
+            <button id="confirmDelete" class="delete-button">כן, מחק</button>
+            <button id="cancelDelete">ביטול</button>
+        </div>
+    </div>
+</div>
+
 <script>
 let currentPage = 1;
 const rowsPerPage = 8;
 let allProducts = {{ products | safe }};
 let totalPages = Math.ceil(allProducts.length / rowsPerPage);
+let productToDelete = null;
 
 let userData = null;
 document.addEventListener("DOMContentLoaded", async () => {
@@ -46,6 +60,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Add event listeners for pagination buttons
     document.getElementById('prevPage').addEventListener('click', goToPreviousPage);
     document.getElementById('nextPage').addEventListener('click', goToNextPage);
+    
+    // Add event listeners for delete modal
+    document.getElementById('cancelDelete').addEventListener('click', closeDeleteModal);
+    document.getElementById('confirmDelete').addEventListener('click', confirmDeleteProduct);
 });
 
 function createProductRow(product) {
@@ -56,9 +74,9 @@ function createProductRow(product) {
             <td>${product.Category}</td>
             <td>${product.numberOfSupps}</td>
             <td>
-                <button>ערוך</button>
-                <button>הצג</button>
-                <button>מחק</button>
+                <button onclick="goToEditProduct(${product.ProdID})">ערוך</button>
+                <button onclick="goToProductPage(${product.ProdID})">הצג</button>
+                <button onclick="showDeleteModal(${product.ProdID})">מחק</button>
             </td>
         </tr>
     `;
@@ -95,6 +113,80 @@ function goToNextPage() {
         currentPage++;
         updatePaginationInfo();
         displayProductsForCurrentPage();
+    }
+}
+
+// Function to navigate to the edit product page
+function goToEditProduct(productId) {
+    window.location.href = `/admin/edit-product/${productId}`;
+}
+
+// Function to navigate to the product details page
+function goToProductPage(productId) {
+    window.location.href = `/products/${productId}`;
+}
+
+// Function to show the delete confirmation modal
+function showDeleteModal(productId) {
+    productToDelete = productId;
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+
+// Function to close the delete confirmation modal
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    productToDelete = null;
+}
+
+// Function to confirm and perform the delete operation
+async function confirmDeleteProduct() {
+    if (productToDelete) {
+        try {
+            // Get username from cookie for authentication
+            const username = getCookie('username');
+            if (!username) {
+                alert('אינך מחובר למערכת');
+                closeDeleteModal();
+                return;
+            }
+            
+            const response = await fetch(`/products/${productToDelete}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const responseData = await response.json();
+                
+                // Remove the product from the allProducts array
+                allProducts = allProducts.filter(product => product.ProdID !== productToDelete);
+                
+                // Recalculate total pages
+                totalPages = Math.ceil(allProducts.length / rowsPerPage);
+                
+                // Adjust current page if necessary
+                if (currentPage > totalPages && totalPages > 0) {
+                    currentPage = totalPages;
+                }
+                
+                // Update UI
+                updatePaginationInfo();
+                displayProductsForCurrentPage();
+                
+                // Show success message with details
+                alert(`המוצר נמחק בהצלחה. ${responseData.deleted_supplier_products} הצעות מספקים נמחקו גם כן.`);
+            } else {
+                const errorData = await response.json();
+                alert(`שגיאה: ${errorData.message || 'אירעה שגיאה במחיקת המוצר'}`);
+            }
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            alert('אירעה שגיאה במחיקת המוצר');
+        }
+        
+        closeDeleteModal();
     }
 }
 </script>
@@ -152,7 +244,6 @@ function goToNextPage() {
     cursor: pointer;
 }
 
-
 .pagination-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -160,6 +251,62 @@ function goToNextPage() {
 
 #page-info {
     margin: 0 15px;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    width: 400px;
+    max-width: 90%;
+    text-align: center;
+    direction: rtl;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.delete-button {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.cancel-button {
+    background-color: #f2f2f2;
+    border: 1px solid #ddd;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.delete-button:hover {
+    background-color: #ff3333;
+}
+
+.cancel-button:hover {
+    background-color: #e6e6e6;
 }
 </style>
 {% endblock %}

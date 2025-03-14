@@ -1,7 +1,10 @@
 from flask import Flask
+from flask_cors import CORS 
 from utilities.db_connector import app, initialize_db  # Import from db_connector
 
 app = Flask(__name__, template_folder="templates")
+CORS(app)
+
 # Import routes after MongoDB initialization
 from routes.auth import auth_bp
 from routes.user import user_bp

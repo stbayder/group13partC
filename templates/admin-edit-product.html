@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% block title %}Edit Product {% endblock %}
+{% block content %}
+<div class="edit-product-container">
+    <h1>עריכת מוצר</h1>
+    <form id="edit-product-form" class="product-form">
+        <div class="form-group">
+            <label for="prodName">שם מוצר:</label>
+            <input type="text" id="prodName" name="ProdName" value="{{ product.ProdName }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="category">קטגוריה:</label>
+            <input type="text" id="category" name="Category" value="{{ product.Category }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="specifications">מפרט:</label>
+            <textarea id="specifications" name="Specifications" rows="4">{{ product.Specifications }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="imageUrl">כתובת תמונה:</label>
+            <input type="url" id="imageUrl" name="Img" value="{{ product.Img }}" required>
+            <div class="image-preview" id="image-preview">
+                {% if product.Img %}
+                    <img src="{{ product.Img }}" alt="{{ product.ProdName }}">
+                {% endif %}
+            </div>
+        </div>
+        <div id="status-message" class="status-message"></div>
+        <div class="form-actions">
+            <button type="submit" id="save-product-btn">שמור שינויים</button>
+            <button type="button" id="cancel-btn" onclick="goBack()">ביטול</button>
+        </div>
+    </form>
+    
+</div>
+
+<script>
+// Parse the product data passed from the server
+let product = {{ product | tojson | safe }};
+let userData = null;
+document.addEventListener('DOMContentLoaded', function() {
+    userData = await getUserData();
+    if(userData.Role != "Admin"){
+        alert("אין לך גישה לעמוד הזה");
+        window.location.href = "/login";
+    }
+    
+    document.getElementById('edit-product-form').addEventListener('submit', updateProduct);
+    
+    document.getElementById('imageUrl').addEventListener('input', updateImagePreview);
+});
+
+function updateImagePreview() {
+    const imageUrl = document.getElementById('imageUrl').value;
+    const imagePreview = document.getElementById('image-preview');
+    
+    if (imageUrl) {
+        imagePreview.innerHTML = `<img src="${imageUrl}" alt="Product preview">`;
+    } else {
+        imagePreview.innerHTML = '';
+    }
+}
+
+async function updateProduct(event) {
+    event.preventDefault();
+    const form = document.getElementById('edit-product-form');
+    const statusMessage = document.getElementById('status-message');
+    
+    // Gather form data
+    const formData = new FormData(form);
+    
+    // Create product object
+    const productData = {
+        ProdID : product.ProdID,
+        ProdName: formData.get('ProdName'),
+        Category: formData.get('Category'),
+        Specifications: formData.get('Specifications'),
+        Img: formData.get('Img')
+    };
+    
+    try {
+        const response = await fetch(`/products/${product.ProdID}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(productData)
+        });
+        
+        if (response.ok) {
+            statusMessage.textContent = 'המוצר עודכן בהצלחה';
+            statusMessage.className = 'status-message success';
+            setTimeout(() => {
+                window.location.href = '/admin/products';
+            }, 1500);
+        } else {
+            const errorData = await response.json();
+            statusMessage.textContent = `שגיאה: ${errorData.message || 'אירעה שגיאה בעדכון המוצר'}`;
+            statusMessage.className = 'status-message error';
+        }
+    } catch (error) {
+        console.error('Error updating product:', error);
+        statusMessage.textContent = 'אירעה שגיאה בעדכון המוצר';
+        statusMessage.className = 'status-message error';
+    }
+}
+
+function goBack() {
+    window.location.href = '/admin/products';
+}
+</script>
+
+<style>
+.edit-product-container {
+    width: 90%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    direction: rtl;
+}
+
+.product-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+.image-preview {
+    margin-top: 10px;
+    border: 1px dashed #ddd;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 150px;
+}
+
+.image-preview img {
+    max-width: 100%;
+    max-height: 200px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+    margin-top: 20px;
+}
+
+#save-product-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#cancel-btn {
+    background-color: #f2f2f2;
+    border: 1px solid #ddd;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.status-message {
+    z-index: 2;
+    position: relative;
+    top:0;
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.status-message.success {
+    background-color: #dff0d8;
+    color: #3c763d;
+    border: 1px solid #d6e9c6;
+}
+
+.status-message.error {
+    background-color: #f2dede;
+    color: #a94442;
+    border: 1px solid #ebccd1;
+}
+</style>
+{% endblock %}
