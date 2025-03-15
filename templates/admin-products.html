@@ -3,6 +3,7 @@
 {% block content %}
 <div class="admin-products-container">
     <h1>מוצרים</h1>
+    <button id="new-prod-btn" onclick="window.location='/admin/create-product'"> צור מוצר חדש</button>
     <div class="table-container">
         <table class="products-table">
             <thead>
@@ -192,6 +193,9 @@ async function confirmDeleteProduct() {
 </script>
 
 <style>
+h1{
+    margin-bottom:1rem;
+}
 .admin-products-container {
     display: flex;
     flex-direction: column;
@@ -251,6 +255,10 @@ async function confirmDeleteProduct() {
 
 #page-info {
     margin: 0 15px;
+}
+
+#new-prod-btn{
+    margin-bottom: 1rem;
 }
 
 /* Modal styles */

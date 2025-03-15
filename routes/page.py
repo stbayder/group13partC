@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, request,render_template, redirect,url_for
 from utilities.db_connector import mongo
-from utilities.utils import convert_objectid
+from utilities.utils import convert_objectid,check_if_admin
 
 page_bp = Blueprint("pages", __name__)
 
@@ -57,3 +57,13 @@ def admin_edit_product(product_id):
     if product and '_id' in product:
         product['_id'] = str(product['_id'])
     return render_template('admin-edit-product.html', product=product)
+
+@page_bp.route('/admin/create-product',methods=["GET"])
+def admin_create_product():
+    check = check_if_admin(request,mongo)
+    if check == 'Not signed in':
+        redirect(url_for('loginPage'))
+    elif check == 'Not Admin':
+        redirect(url_for('home'))
+    return render_template('admin-create-product.html')
+

@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify, render_template
 from utilities.db_connector import mongo
-from utilities.utils import convert_objectid
-
+from utilities.utils import convert_objectid,check_if_admin
 
 product_bp = Blueprint("products", __name__)
 
@@ -9,8 +8,13 @@ product_bp = Blueprint("products", __name__)
 def create_product():
     try:
         data = request.json
-        print(data)
-
+        
+        check = check_if_admin(request,mongo)
+        if check == 'Not signed in':
+            return jsonify({'success': False, 'message': 'אינך מחובר למערכת'}), 401
+        elif check == 'Not Admin':
+            return jsonify({'success': False, 'message': 'אין לך הרשאות לבקשה הזו.'}), 403
+            
         # Fetch the last inserted product to determine new ProdID
         last_product = mongo.db.products.find_one(sort=[("ProdID", -1)])
         new_prod_id = last_product["ProdID"] + 1 if last_product else 1
@@ -104,6 +108,12 @@ def edit_product(product_id):
     # Convert product_id to integer
     product_id = int(product_id)
     
+    check = check_if_admin(request,mongo)
+    if check == 'Not signed in':
+        return jsonify({'success': False, 'message': 'אינך מחובר למערכת'}), 401
+    elif check == 'Not Admin':
+        return jsonify({'success': False, 'message': 'אין לך הרשאות לבקשה הזו.'}), 403
+    
     # Get the JSON data from the request
     product_data = request.get_json()
     
@@ -140,21 +150,13 @@ def edit_product(product_id):
 @product_bp.route('/<product_id>', methods=['DELETE'])
 def delete_product(product_id):
     try:
-        # Convert product_id to integer since ProdID is stored as an integer
         product_id = int(product_id)
-        
-        # Authentication check using the username from cookie
-        username = request.cookies.get('username')
-        print(username)
-        if not username:
+        check = check_if_admin(request,mongo)
+        if check == 'Not signed in':
             return jsonify({'success': False, 'message': 'אינך מחובר למערכת'}), 401
-        
-        # Verify user is an admin
-        user = mongo.db.users.find_one({'UserName': username})
-        if not user or user.get('Role') != 'Admin':
-            return jsonify({'success': False, 'message': 'אין לך הרשאות למחוק מוצרים'}), 403
-        
-        # Check if product exists
+        elif check == 'Not Admin':
+            return jsonify({'success': False, 'message': 'אין לך הרשאות לבקשה הזו.'}), 403
+
         product = mongo.db.products.find_one({'ProdID': product_id})
         if not product:
             return jsonify({'success': False, 'message': 'מוצר לא נמצא'}), 404

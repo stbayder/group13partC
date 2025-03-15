@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% block title %}הוספת מוצר חדש {% endblock %}
+{% block content %}
+
+<div class="new-prod-container">
+    <h1>הוספת מוצר חדש</h1>
+    <div id="errorMessage" class="error-message" style="display: none;"></div>
+    <div id="successMessage" class="success-message" style="display: none;"></div>
+    
+    <form id="createProductForm">
+        <div class="form-group">
+            <label for="prodName">שם המוצר:</label>
+            <input type="text" id="prodName" name="prodName" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="category">קטגוריה:</label>
+            <select id="category" name="category" required>
+                <option value="">בחר קטגוריה</option>
+                <!-- Categories will be loaded dynamically -->
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="specifications">מפרט טכני:</label>
+            <textarea id="specifications" name="specifications" required></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="img">קישור לתמונה:</label>
+            <input type="text" id="img" name="img" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="supplierName">שם ספק:</label>
+            <select id="supplierName" name="supplierName" required>
+                <option value="">בחר ספק</option>
+                <!-- Suppliers will be loaded dynamically -->
+            </select>
+        </div>
+        
+        <div class="price-amount-group">
+            <div class="form-group">
+                <label for="price1">מחיר 1:</label>
+                <input type="number" id="price1" name="price1" min="0" step="0.01" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="amount1">כמות 1:</label>
+                <input type="number" id="amount1" name="amount1" min="1" required>
+            </div>
+        </div>
+        
+        <div class="price-amount-group">
+            <div class="form-group">
+                <label for="price2">מחיר 2:</label>
+                <input type="number" id="price2" name="price2" min="0" step="0.01">
+            </div>
+            
+            <div class="form-group">
+                <label for="amount2">כמות 2:</label>
+                <input type="number" id="amount2" name="amount2" min="1">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="stockQuantity">כמות במלאי:</label>
+            <input type="number" id="stockQuantity" name="stockQuantity" min="0" required>
+        </div>
+        
+        <button type="submit">הוסף מוצר</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    userData = await getUserData();
+    if(userData.Role != "Admin"){
+        alert("אין לך גישה לעמוד הזה");
+        window.location.href = "/login";
+    }
+
+    // Load categories
+    let categories  = [
+        { "name": "מזון", "icon": "🍎" },
+        { "name": "אלקטרוניקה", "icon": "💻" },
+        { "name": "רהיטים", "icon": "🪑" },
+        { "name": "ביגוד", "icon": "👕" },
+        { "name": "צעצועים", "icon": "🧸" },
+        { "name": "ספרים", "icon": "📚" },
+        { "name": "אחר", "icon": "📦" },
+        { "name": "קוסמטיקה", "icon": "👄" }
+    ]
+
+    const categorySelect = document.getElementById('category');
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.name;
+        option.textContent = category.name + category.icon ;
+        categorySelect.appendChild(option);
+    });
+
+    // Load suppliers
+    try {
+        const suppliersResponse = await fetch('/suppliers');
+        if (suppliersResponse.ok) {
+            const suppliers = await suppliersResponse.json();
+            const supplierSelect = document.getElementById('supplierName');
+            suppliers.data.forEach(supplier => {
+                const option = document.createElement('option');
+                option.value = supplier.SuppName;
+                option.textContent = supplier.SuppName;
+                supplierSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading suppliers:', error);
+    }
+    
+    // Form submission handler
+    document.getElementById('createProductForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        errorMessage.style.display = 'none';
+        successMessage.style.display = 'none';
+        
+        // Collect form data
+        const formData = {
+            ProdName: document.getElementById('prodName').value,
+            Category: document.getElementById('category').value,
+            Specifications: document.getElementById('specifications').value,
+            Img: document.getElementById('img').value,
+            SupplierName: document.getElementById('supplierName').value,
+            Price1: parseFloat(document.getElementById('price1').value),
+            Amount1: parseInt(document.getElementById('amount1').value),
+            Price2: document.getElementById('price2').value ? parseFloat(document.getElementById('price2').value) : 0,
+            Amount2: document.getElementById('amount2').value ? parseInt(document.getElementById('amount2').value) : 0,
+            StockQuantity: parseInt(document.getElementById('stockQuantity').value)
+        };
+        
+        // Validate form data
+        if (!formData.ProdName || !formData.Category || !formData.SupplierName || !formData.Price1 || !formData.Amount1) {
+            errorMessage.textContent = 'נא למלא את כל השדות הנדרשים';
+            errorMessage.style.display = 'block';
+            return;
+        }
+        
+        try {
+            const response = await fetch('/products/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                successMessage.textContent = `המוצר נוסף בהצלחה! מזהה המוצר: ${result.ProdID}`;
+                successMessage.style.display = 'block';
+                document.getElementById('createProductForm').reset();
+            } else {
+                errorMessage.textContent = result.error || 'אירעה שגיאה בהוספת המוצר';
+                errorMessage.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            errorMessage.textContent = 'אירעה שגיאה בהוספת המוצר';
+            errorMessage.style.display = 'block';
+        }
+    });
+});
+
+</script>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    direction: rtl;
+}
+.new-prod-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+.form-group {
+    margin-bottom: 20px;
+}
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+textarea {
+    height: 100px;
+    resize: vertical;
+}
+.price-amount-group {
+    display: flex;
+    gap: 10px;
+}
+.price-amount-group .form-group {
+    flex: 1;
+}
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    margin-top: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    display: block;
+    width: 100%;
+}
+button:hover {
+    background-color: #45a049;
+}
+.error-message {
+    color: red;
+    margin-top: 20px;
+    text-align: center;
+}
+.success-message {
+    color: green;
+    margin-top: 20px;
+    text-align: center;
+}
+</style>
+{% endblock %}
