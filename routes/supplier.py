@@ -157,25 +157,3 @@ def add_supplier_product(supplier_id, product_id):
     except Exception as e:
         # Handle any errors that occur during insertion
         return jsonify({"error": str(e)}), 500
-
-# @supplier_bp.route('/product/<product_id>', methods=['POST'])
-# def add_product_to_supplier(product_id):
-#     return render_template('add-product.html')
-
-# @supplier_bp.route("/<supplier_id>", methods=["GET"])
-# def get_supplier(supplier_id):
-#     return jsonify({"message": f"Fetching supplier {supplier_id}"}), 200
-
-# @supplier_bp.route("/", methods=["POST"])
-# def create_supplier():
-#     data = request.json
-#     return jsonify({"message": "Supplier created", "data": data}), 201
-
-# @supplier_bp.route("/<supplier_id>", methods=["PUT"])
-# def update_supplier(supplier_id):
-#     data = request.json
-#     return jsonify({"message": f"Supplier {supplier_id} updated", "data": data}), 200
-
-# @supplier_bp.route("/<supplier_id>", methods=["DELETE"])
-# def delete_supplier(supplier_id):
-#     return jsonify({"message": f"Supplier {supplier_id} deleted"}), 200
