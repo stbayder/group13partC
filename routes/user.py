@@ -135,7 +135,6 @@ def create_user():
         return jsonify(response), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 @user_bp.route("/<user_id>", methods=["PUT"])
 def update_user(user_id):
     try:
@@ -158,20 +157,23 @@ def update_user(user_id):
             if mongo.db.users.find_one({"Email": data["Email"]}):
                 return jsonify({"error": "Email already exists"}), 409
                 
-        if "Role" in data and data["Role"] != existing_user["Role"]:
-            if existing_user["Role"] == "Supplier" or data["Role"] == "Supplier":
-                return jsonify({"error": "Cannot change user role to or from Supplier"}), 400
+        # Always prevent changing Role
+        if "Role" in data:
+            return jsonify({"error": "Role cannot be modified"}), 400
         
         user_update_fields = {}
         supplier_update_fields = {}
         
         for key, value in data.items():
-            if key not in ["UserID", "_id", "SuppName", "Phone", "Address", "SuppID"]:
+            if key not in ["UserID", "_id", "Role"]:
                 if key == "Password" and value:
                     # Hash new password if provided
                     user_update_fields[key] = hash_password(value).decode('utf-8')
                 elif key == "Email":
                     user_update_fields[key] = value
+                elif key in ["SuppName", "Phone", "Address", "SuppEmail"]:
+                    # These fields go to supplier collection
+                    pass
                 else:
                     user_update_fields[key] = value
         
@@ -235,27 +237,30 @@ def update_user(user_id):
         return jsonify({"error": "Invalid user ID format"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
+    
 @user_bp.route("/<user_id>", methods=["DELETE"])
 def delete_user(user_id):
     try:
         user_id = int(user_id)
-        
         existing_user = mongo.db.users.find_one({"UserID": user_id})
         if not existing_user:
             return jsonify({"error": "User not found"}), 404
-            
+        
         is_supplier = existing_user["Role"] == "Supplier"
         supplier_deleted = False
-        
+
         if is_supplier:
+            supplier = mongo.db.suppliers.find_one({"UserID":user_id})
             supplier_result = mongo.db.suppliers.delete_one({"UserID": user_id})
             supplier_deleted = supplier_result.deleted_count > 0
-            
+            suppiler_products = mongo.db.supplier.delete_many({"SuppID":supplier["SuppID"]})
+            supplier_products_deleted = suppiler_products.deleted_count > 0
+
             # If supplier exists but couldn't be deleted, return error
-            if not supplier_deleted and mongo.db.suppliers.find_one({"UserID": user_id}):
+            if not supplier_deleted and mongo.db.suppliers.find_one({"UserID": user_id}) and not supplier_products_deleted:
                 return jsonify({"error": "Failed to delete associated supplier record"}), 500
         
+
         user_result = mongo.db.users.delete_one({"UserID": user_id})
         
         if user_result.deleted_count > 0:
@@ -276,14 +281,13 @@ def delete_user(user_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @user_bp.route('/', methods=['GET'])
 def admin_users():
-    check = check_if_admin(request,mongo)
+    check = check_if_admin(request, mongo)
     if check == 'Not signed in':
-        redirect(url_for('loginPage'))
+        return redirect(url_for('loginPage'))
     elif check == 'Not Admin':
-        redirect(url_for('home'))
+        return redirect(url_for('home'))
     
     try:
         users = list(mongo.db.users.find())
@@ -293,13 +297,7 @@ def admin_users():
             # Remove password hash from response
             if 'Password' in user:
                 del user['Password']
-            # # If user is a supplier, include supplier details
-            # if user['Role'] == 'Supplier':
-            #     supplier = mongo.db.suppliers.find_one({"UserID": user['UserID']})
-            #     if supplier:
-            #         supplier['_id'] = str(supplier['_id'])
-            #         user['supplier_details'] = supplier
             
-        return render_template('admin-edit-users.html',users =users)
+        return render_template('admin-users.html',users =users)
     except Exception as e:
         return jsonify({"error": str(e)}), 500

@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, render_template
+from flask import Blueprint, redirect, request, jsonify, render_template, url_for
 from utilities.db_connector import mongo
 from utilities.utils import convert_objectid,check_if_admin
 
@@ -9,11 +9,11 @@ def create_product():
     try:
         data = request.json
         
-        check = check_if_admin(request,mongo)
+        check = check_if_admin(request, mongo)
         if check == 'Not signed in':
-            return jsonify({'success': False, 'message': 'אינך מחובר למערכת'}), 401
+            return redirect(url_for('loginPage'))
         elif check == 'Not Admin':
-            return jsonify({'success': False, 'message': 'אין לך הרשאות לבקשה הזו.'}), 403
+            return redirect(url_for('home'))
             
         # Fetch the last inserted product to determine new ProdID
         last_product = mongo.db.products.find_one(sort=[("ProdID", -1)])
@@ -108,11 +108,11 @@ def edit_product(product_id):
     # Convert product_id to integer
     product_id = int(product_id)
     
-    check = check_if_admin(request,mongo)
+    check = check_if_admin(request, mongo)
     if check == 'Not signed in':
-        return jsonify({'success': False, 'message': 'אינך מחובר למערכת'}), 401
+        return redirect(url_for('loginPage'))
     elif check == 'Not Admin':
-        return jsonify({'success': False, 'message': 'אין לך הרשאות לבקשה הזו.'}), 403
+        return redirect(url_for('home'))
     
     # Get the JSON data from the request
     product_data = request.get_json()
@@ -151,11 +151,11 @@ def edit_product(product_id):
 def delete_product(product_id):
     try:
         product_id = int(product_id)
-        check = check_if_admin(request,mongo)
+        check = check_if_admin(request, mongo)
         if check == 'Not signed in':
-            return jsonify({'success': False, 'message': 'אינך מחובר למערכת'}), 401
+            return redirect(url_for('loginPage'))
         elif check == 'Not Admin':
-            return jsonify({'success': False, 'message': 'אין לך הרשאות לבקשה הזו.'}), 403
+            return redirect(url_for('home'))
 
         product = mongo.db.products.find_one({'ProdID': product_id})
         if not product:

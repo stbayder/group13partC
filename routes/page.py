@@ -60,10 +60,41 @@ def admin_edit_product(product_id):
 
 @page_bp.route('/admin/create-product',methods=["GET"])
 def admin_create_product():
-    check = check_if_admin(request,mongo)
+    check = check_if_admin(request, mongo)
     if check == 'Not signed in':
-        redirect(url_for('loginPage'))
+        return redirect(url_for('loginPage'))
     elif check == 'Not Admin':
-        redirect(url_for('home'))
+        return redirect(url_for('home'))
     return render_template('admin-create-product.html')
 
+@page_bp.route('/admin/user/edit/<user_id>', methods=["GET"])
+def admin_edit_user(user_id):
+    check = check_if_admin(request, mongo)
+    if check == 'Not signed in':
+        return redirect(url_for('loginPage'))
+    elif check == 'Not Admin':
+        return redirect(url_for('home'))
+    
+    try:
+        user_id = int(user_id)
+        user = mongo.db.users.find_one({"UserID": user_id})
+        
+        if not user:
+            return redirect(url_for('user_bp.admin_users'))
+        
+        user['_id'] = str(user['_id'])
+        if 'Password' in user:
+            del user['Password']  # Don't send password hash to client
+        
+        supplier = None
+        print(user)
+        if user['Role'] == 'Supplier':
+            supplier = mongo.db.suppliers.find_one({"UserID": user_id})
+            print(supplier)
+            if supplier:
+                supplier['_id'] = str(supplier['_id'])
+        
+        return render_template('admin-edit-user.html', user=user, supplier=supplier)
+    except Exception as e:
+        print(f"Error in admin_edit_user: {str(e)}")
+        return redirect(url_for('user_bp.admin_users'))

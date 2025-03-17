@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+{% block title %}Admin users {% endblock %}
+{% block content %}
+<div class="admin-users-container">
+    <h1>משתמשים</h1>
+    <button id="new-prod-btn" onclick="window.location='/users/create'"> צור משתמש חדש</button>
+    <div class="table-container">
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>שם מלא</th>
+                    <th>שם משתמש</th>
+                    <th>אימייל</th>
+                    <th>תפקיד</th>
+                    <th>פעולות</th>
+                </tr>
+            </thead>
+            <tbody id="users-table-body">
+                <!-- User rows will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="pagination-container">
+        <button id="prevPage" class="pagination-button">הקודם</button>
+        <span id="page-info">עמוד <span id="currentPageDisplay">1</span> מתוך <span id="totalPagesDisplay">1</span></span>
+        <button id="nextPage" class="pagination-button">הבא</button>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <h2>אישור מחיקה</h2>
+        <p>האם אתה בטוח שברצונך למחוק את המשתמש הזה?</p>
+        {# להוסיף הודעה בהתאם להאם זה ספק או אדמין כי יש למחוק גם את כל המוצרי ספק #}
+
+        <div class="modal-buttons">
+            <button id="confirmDelete" class="delete-button">כן, מחק</button>
+            <button id="cancelDelete">ביטול</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentPage = 1;
+const rowsPerPage = 8;
+let allUsers = {{ users | safe }};
+console.log(allUsers)
+let totalPages = Math.ceil(allUsers.length / rowsPerPage);
+let userToDelete = null;
+
+let userData = null;
+document.addEventListener("DOMContentLoaded", async () => {
+    userData = await getUserData();
+    if(userData.Role != "Admin"){
+        alert("אין לך גישה לעמוד הזה");
+        window.location.href = "/login";
+    }
+    
+    updatePaginationInfo();
+    displayusersForCurrentPage();
+    
+    // Add event listeners for pagination buttons
+    document.getElementById('prevPage').addEventListener('click', goToPreviousPage);
+    document.getElementById('nextPage').addEventListener('click', goToNextPage);
+    
+    // Add event listeners for delete modal
+    document.getElementById('cancelDelete').addEventListener('click', closeDeleteModal);
+    document.getElementById('confirmDelete').addEventListener('click', confirmDeleteuser);
+});
+
+function createUserRow(User) {
+    return `
+        <tr>
+            <td>${User.FullName}</td>
+            <td>${User.UserName}</td>
+            <td>${User.Email}</td>
+            <td>${User.Role}</td>
+            <td class="action-btns">
+                <button onclick="goToEditUser(${User.UserID})">ערוך</button>
+                <button onclick="showDeleteModal(${User.UserID})">מחק</button>
+            </td>
+        </tr>
+    `;
+} 
+
+function displayusersForCurrentPage() {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, allUsers.length);
+    const usersToDisplay = allUsers.slice(startIndex, endIndex);
+    
+    const tableBody = document.getElementById('users-table-body');
+    tableBody.innerHTML = usersToDisplay.map(createUserRow).join('');
+}
+
+function updatePaginationInfo() {
+    document.getElementById('currentPageDisplay').textContent = currentPage;
+    document.getElementById('totalPagesDisplay').textContent = totalPages;
+    
+    // Enable/disable pagination buttons based on current page
+    document.getElementById('prevPage').disabled = currentPage === 1;
+    document.getElementById('nextPage').disabled = currentPage === totalPages;
+}
+
+function goToPreviousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        updatePaginationInfo();
+        displayusersForCurrentPage();
+    }
+}
+
+function goToNextPage() {
+    if (currentPage < totalPages) {
+        currentPage++;
+        updatePaginationInfo();
+        displayusersForCurrentPage();
+    }
+}
+
+// Function to navigate to the edit user page
+function goToEditUser(UserID) {
+    window.location.href = `/admin/user/edit/${UserID}`;
+}
+
+// Function to navigate to the user details page
+function goToUserPage(UserID) {
+    window.location.href = `/users/${UserID}`;
+}
+
+// Function to show the delete confirmation modal
+function showDeleteModal(UserID) {
+    userToDelete = UserID;
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+
+// Function to close the delete confirmation modal
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    userToDelete = null;
+}
+
+// Function to confirm and perform the delete operation
+async function confirmDeleteuser() {
+    if (userToDelete) {
+        try {
+            // Get username from cookie for authentication
+            const username = getCookie('username');
+            if (!username) {
+                alert('אינך מחובר למערכת');
+                closeDeleteModal();
+                return;
+            }
+            
+            const response = await fetch(`/users/${userToDelete}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const responseData = await response.json();
+                
+                // Remove the user from the allUsers array - FIXED HERE
+                // The issue was using ProdID instead of UserID in the filter
+                allUsers = allUsers.filter(user => user.UserID !== userToDelete);
+                
+                // Recalculate total pages
+                totalPages = Math.ceil(allUsers.length / rowsPerPage);
+                
+                // Adjust current page if necessary
+                if (currentPage > totalPages && totalPages > 0) {
+                    currentPage = totalPages;
+                } else if (totalPages === 0) {
+                    currentPage = 1;
+                }
+                
+                // Update UI
+                updatePaginationInfo();
+                displayusersForCurrentPage();
+                
+                // Show success message with details
+                if (responseData.supplier_deleted) {
+                    alert(`המשתמש נמחק בהצלחה. נמחק גם הספק והמוצרים של הספק.`);
+                } else {
+                    alert(`המשתמש נמחק בהצלחה.`);
+                }
+            } else {
+                const errorData = await response.json();
+                alert(`שגיאה: ${errorData.error || 'אירעה שגיאה במחיקת משתמש'}`);
+            }
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            alert('אירעה שגיאה במחיקת משתמש');
+        }
+        
+        closeDeleteModal();
+    }
+}
+</script>
+
+<style>
+
+.action-btns{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap:1vw;
+}
+h1{
+    margin-bottom:1rem;
+}
+.admin-users-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    direction: rtl;
+}
+
+td{
+    text-align: center;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.users-table th, .users-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.users-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.users-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.pagination-button {
+    padding: 8px 15px;
+    margin: 0 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.pagination-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#page-info {
+    margin: 0 15px;
+}
+
+#new-prod-btn{
+    margin-bottom: 1rem;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    width: 400px;
+    max-width: 90%;
+    text-align: center;
+    direction: rtl;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.delete-button {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.cancel-button {
+    background-color: #f2f2f2;
+    border: 1px solid #ddd;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.delete-button:hover {
+    background-color: #ff3333;
+}
+
+.cancel-button:hover {
+    background-color: #e6e6e6;
+}
+</style>
+{% endblock %}

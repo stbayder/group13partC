@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% block title %}Edit User {% endblock %}
+{% block content %}
+<div class="edit-user-container">
+    <h1>עריכת משתמש</h1>
+    <form id="edit-user-form" class="user-form">
+        <div class="form-group">
+            <label for="FullName">שם מלא:</label>
+            <input type="text" id="FullName" name="FullName" required>
+        </div>
+
+        <div class="form-group">
+            <label for="UserName">שם משתמש:</label>
+            <input type="text" id="UserName" name="UserName" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="Email">אימייל:</label>
+            <input type="email" id="Email" name="Email" required>
+        </div>
+
+        <div class="form-group">
+            <label for="Password">סיסמה חדשה:</label>
+            <input type="password" id="Password" name="Password" placeholder="השאר ריק אם אינך רוצה לשנות את הסיסמה">
+            <small class="password-hint">השאר ריק אם אינך רוצה לשנות את הסיסמה הקיימת</small>
+        </div>
+
+        <div class="form-group">
+            <label for="Role">תפקיד:</label>
+            <input type="text" id="Role" name="Role" disabled>
+        </div>
+        
+        <!-- Supplier fields - will only be shown if user is a supplier -->
+        <div id="supplier-fields" style="display: none;">
+            <h2>פרטי ספק</h2>
+            
+            <div class="form-group">
+                <label for="SuppName">שם ספק:</label>
+                <input type="text" id="SuppName" name="SuppName">
+            </div>
+            
+            <div class="form-group">
+                <label for="SuppEmail">אימייל ספק:</label>
+                <input type="email" id="SuppEmail" name="SuppEmail">
+            </div>
+
+            <div class="form-group">
+                <label for="Phone">טלפון ספק:</label>
+                <input type="text" id="Phone" name="Phone">
+            </div>
+
+            <div class="form-group">
+                <label for="Address">כתובת ספק:</label>
+                <input type="text" id="Address" name="Address">
+            </div>
+        </div>
+        
+        <div id="status-message" class="status-message"></div>
+        <div class="form-actions">
+            <button type="submit" id="save-user-btn">שמור שינויים</button>
+            <button type="button" id="cancel-btn" onclick="goBack()">ביטול</button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Parse the user data passed from the server
+let user = {{ user | tojson | safe }};
+let supplier = {{ supplier | tojson | safe }};
+
+console.log(supplier)
+async function getUserData() {
+    try {
+        const username = getCookie('username');
+        if (!username) return null;
+        
+        const response = await fetch(`/users/${username}`);
+        if (response.ok) {
+            return await response.json();
+        }
+        return null;
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        return null;
+    }
+}
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
+    const userData = await getUserData();
+    if(!userData || userData.Role != "Admin"){
+        alert("אין לך גישה לעמוד הזה");
+        window.location.href = "/login";
+        return;
+    }
+    
+    // Fill form with user data
+    document.getElementById('FullName').value = user.FullName || '';
+    document.getElementById('UserName').value = user.UserName || '';
+    document.getElementById('Email').value = user.Email || '';
+    document.getElementById('Role').value = user.Role || '';
+    
+    // Show supplier fields if user is a supplier
+    if (user.Role === 'Supplier' && supplier) {
+        document.getElementById('supplier-fields').style.display = 'block';
+        document.getElementById('SuppName').value = supplier.SuppName || '';
+        document.getElementById('SuppEmail').value = supplier.Email || '';
+        document.getElementById('Phone').value = supplier.Phone || '';
+        document.getElementById('Address').value = supplier.Address || '';
+    }
+    
+    document.getElementById('edit-user-form').addEventListener('submit', updateUser);
+});
+
+async function updateUser(event) {
+    event.preventDefault();
+    const statusMessage = document.getElementById('status-message');
+    
+    // Create user update object
+    const userData = {
+        FullName: document.getElementById('FullName').value,
+        UserName: document.getElementById('UserName').value,
+        Email: document.getElementById('Email').value
+    };
+    
+    // Add password if provided
+    const password = document.getElementById('Password').value;
+    if (password) {
+        userData.Password = password;
+    }
+    
+    // Add supplier data if user is a supplier
+    if (user.Role === 'Supplier') {
+        userData.SuppName = document.getElementById('SuppName').value;
+        userData.SuppEmail = document.getElementById('SuppEmail').value;
+        userData.Phone = document.getElementById('Phone').value;
+        userData.Address = document.getElementById('Address').value;
+    }
+
+    try {
+        const response = await fetch(`/users/${user.UserID}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            statusMessage.textContent = 'המשתמש עודכן בהצלחה';
+            statusMessage.className = 'status-message success';
+            
+            // Redirect after successful update
+            setTimeout(() => {
+                window.location.href = '/users';
+            }, 1500);
+        } else {
+            statusMessage.textContent = `שגיאה: ${result.error || 'אירעה שגיאה בעדכון המשתמש'}`;
+            statusMessage.className = 'status-message error';
+        }
+    } catch (error) {
+        console.error('Error updating user:', error);
+        statusMessage.textContent = 'אירעה שגיאה בעדכון המשתמש';
+        statusMessage.className = 'status-message error';
+    }
+}
+
+function goBack() {
+    window.location.href = '/users';
+}
+</script>
+
+<style>
+.edit-user-container {
+    width: 90%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    direction: rtl;
+}
+
+.user-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+.password-hint {
+    color: #666;
+    font-size: 14px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+    margin-top: 20px;
+}
+
+#save-user-btn {
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#cancel-btn {
+    background-color: red;
+    border: 1px solid #ddd;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.status-message {
+    z-index: 2;
+    position: relative;
+    top: 0;
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.status-message.success {
+    background-color: #dff0d8;
+    color: #3c763d;
+    border: 1px solid #d6e9c6;
+}
+
+.status-message.error {
+    background-color: #f2dede;
+    color: #a94442;
+    border: 1px solid #ebccd1;
+}
+</style>
+{% endblock %}
