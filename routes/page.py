@@ -87,10 +87,8 @@ def admin_edit_user(user_id):
             del user['Password']  # Don't send password hash to client
         
         supplier = None
-        print(user)
         if user['Role'] == 'Supplier':
             supplier = mongo.db.suppliers.find_one({"UserID": user_id})
-            print(supplier)
             if supplier:
                 supplier['_id'] = str(supplier['_id'])
         
@@ -98,3 +96,13 @@ def admin_edit_user(user_id):
     except Exception as e:
         print(f"Error in admin_edit_user: {str(e)}")
         return redirect(url_for('user_bp.admin_users'))
+
+@page_bp.route('/admin/users/create',methods=["GET"])
+def get_user_creation_page():
+    check = check_if_admin(request, mongo)
+    if check == 'Not signed in':
+        return redirect(url_for('loginPage'))
+    elif check == 'Not Admin':
+        return redirect(url_for('home'))
+    else:
+        return render_template('admin-new-user.html')

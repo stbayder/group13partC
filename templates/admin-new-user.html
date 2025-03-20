@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Edit User {% endblock %}
 {% block content %}
-<div class="edit-user-container">
+<div class="new-user-container">
     <h1>עריכת משתמש</h1>
-    <form id="edit-user-form" class="user-form">
+    <form id="new-user-form" class="user-form">
         <div class="form-group">
             <label for="FullName">שם מלא:</label>
             <input type="text" id="FullName" name="FullName" required>
@@ -15,19 +15,21 @@
         </div>
         
         <div class="form-group">
-            <label for="Email">אימייל:</label>
-            <input type="email" id="Email" name="Email" required>
+            <label for="UserEmail">אימייל:</label>
+            <input type="email" id="UserEmail" name="UserEmail" required>
         </div>
 
         <div class="form-group">
-            <label for="Password">סיסמה חדשה:</label>
-            <input type="password" id="Password" name="Password" placeholder="השאר ריק אם אינך רוצה לשנות את הסיסמה">
-            <small class="password-hint">השאר ריק אם אינך רוצה לשנות את הסיסמה הקיימת</small>
+            <label for="Password">סיסמה :</label>
+            <input type="password" id="Password" name="Password">
         </div>
 
         <div class="form-group">
-            <label for="Role">תפקיד:</label>
-            <input type="text" id="Role" name="Role" disabled>
+            <label for="RoleSelect">תפקיד:</label>
+            <select name="Role" id="RoleSelect" onchange="toggleSupplierFields()">
+                <option value="Admin">אדמין</option>
+                <option value="Supplier">ספק</option>
+            </select>
         </div>
         
         <!-- Supplier fields - will only be shown if user is a supplier -->
@@ -57,34 +59,13 @@
         
         <div id="status-message" class="status-message"></div>
         <div class="form-actions">
-            <button type="submit" id="save-user-btn">שמור שינויים</button>
+            <button type="submit" id="save-user-btn">שמור </button>
             <button type="button" id="cancel-btn" onclick="goBack()">ביטול</button>
         </div>
     </form>
 </div>
 
 <script>
-// Parse the user data passed from the server
-let user = {{ user | tojson | safe }};
-let supplier = {{ supplier | tojson | safe }};
-
-console.log(supplier)
-async function getUserData() {
-    try {
-        const username = getCookie('username');
-        if (!username) return null;
-        
-        const response = await fetch(`/users/${username}`);
-        if (response.ok) {
-            return await response.json();
-        }
-        return null;
-    } catch (error) {
-        console.error('Error fetching user data:', error);
-        return null;
-    }
-}
-
 document.addEventListener('DOMContentLoaded', async function() {
     const userData = await getUserData();
     if(!userData || userData.Role != "Admin"){
@@ -93,43 +74,41 @@ document.addEventListener('DOMContentLoaded', async function() {
         return;
     }
     
-    // Fill form with user data
-    document.getElementById('FullName').value = user.FullName || '';
-    document.getElementById('UserName').value = user.UserName || '';
-    document.getElementById('Email').value = user.Email || '';
-    document.getElementById('Role').value = user.Role || '';
+    document.getElementById('new-user-form').addEventListener('submit', CreateUser);
     
-    // Show supplier fields if user is a supplier
-    if (user.Role === 'Supplier' && supplier) {
-        document.getElementById('supplier-fields').style.display = 'block';
-        document.getElementById('SuppName').value = supplier.SuppName || '';
-        document.getElementById('SuppEmail').value = supplier.Email || '';
-        document.getElementById('Phone').value = supplier.Phone || '';
-        document.getElementById('Address').value = supplier.Address || '';
-    }
-    
-    document.getElementById('edit-user-form').addEventListener('submit', updateUser);
+    toggleSupplierFields();
 });
 
-async function updateUser(event) {
+// Function to toggle supplier fields visibility and required attribute
+function toggleSupplierFields() {
+    const roleSelect = document.getElementById('RoleSelect');
+    const supplierFields = document.getElementById('supplier-fields');
+    const isSupplier = roleSelect.value === 'Supplier';
+    
+    supplierFields.style.display = isSupplier ? 'block' : 'none';
+    
+    const supplierInputs = supplierFields.querySelectorAll('input');
+    supplierInputs.forEach(input => {
+        input.required = isSupplier;
+    });
+}
+
+async function CreateUser(event) {
     event.preventDefault();
     const statusMessage = document.getElementById('status-message');
+    const userIsSupplier = document.getElementById('RoleSelect').value === 'Supplier';
     
     // Create user update object
     const userData = {
         FullName: document.getElementById('FullName').value,
         UserName: document.getElementById('UserName').value,
-        Email: document.getElementById('Email').value
+        Email: document.getElementById('UserEmail').value,
+        Password: document.getElementById('Password').value,
+        Role: document.getElementById('RoleSelect').value
     };
     
-    // Add password if provided
-    const password = document.getElementById('Password').value;
-    if (password) {
-        userData.Password = password;
-    }
-    
-    // Add supplier data if user is a supplier
-    if (user.Role === 'Supplier') {
+    // Add supplier data only if user is a supplier
+    if (userIsSupplier) {
         userData.SuppName = document.getElementById('SuppName').value;
         userData.SuppEmail = document.getElementById('SuppEmail').value;
         userData.Phone = document.getElementById('Phone').value;
@@ -137,8 +116,9 @@ async function updateUser(event) {
     }
 
     try {
-        const response = await fetch(`/users/${user.UserID}`, {
-            method: 'PUT',
+        // Fixed the API endpoint - it was using an undefined 'user.UserID' variable
+        const response = await fetch('/users', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -148,7 +128,7 @@ async function updateUser(event) {
         const result = await response.json();
         
         if (response.ok) {
-            statusMessage.textContent = 'המשתמש עודכן בהצלחה';
+            statusMessage.textContent = 'המשתמש נוצר בהצלחה';
             statusMessage.className = 'status-message success';
             
             // Redirect after successful update
@@ -156,12 +136,12 @@ async function updateUser(event) {
                 window.location.href = '/users';
             }, 1500);
         } else {
-            statusMessage.textContent = `שגיאה: ${result.error || 'אירעה שגיאה בעדכון המשתמש'}`;
+            statusMessage.textContent = `שגיאה: ${result.error || 'אירעה שגיאה ביצירת המשתמש'}`;
             statusMessage.className = 'status-message error';
         }
     } catch (error) {
         console.error('Error updating user:', error);
-        statusMessage.textContent = 'אירעה שגיאה בעדכון המשתמש';
+        statusMessage.textContent = 'אירעה שגיאה ביצירת המשתמש';
         statusMessage.className = 'status-message error';
     }
 }
@@ -172,7 +152,7 @@ function goBack() {
 </script>
 
 <style>
-.edit-user-container {
+.new-user-container {
     width: 90%;
     max-width: 800px;
     margin: 0 auto;

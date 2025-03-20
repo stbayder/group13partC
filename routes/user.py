@@ -51,10 +51,15 @@ def get_user(user_id):
 
 @user_bp.route("/", methods=["POST"])
 def create_user():
+    check = check_if_admin(request, mongo)
+    if check == 'Not signed in':
+        return redirect(url_for('loginPage'))
+    elif check == 'Not Admin':
+        return redirect(url_for('home'))
     try:
         data = request.json
         
-        required_fields = ["UserName", "Email", "Role", "FullName"]
+        required_fields = ["UserName", "Email", "Role", "FullName","Password"]
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
@@ -75,7 +80,6 @@ def create_user():
         last_user = mongo.db.users.find_one(sort=[("UserID", -1)])
         new_user_id = last_user["UserID"] + 1 if last_user else 1
         
-        # Create new user document
         new_user = {
             "UserID": new_user_id,
             "UserName": data["UserName"],
@@ -84,24 +88,17 @@ def create_user():
             "FullName": data["FullName"]
         }
         
-        # Handle password - either use provided password or generate a random one
         password = data.get("Password")
-        if not password:
-            password = generate_password()
-            generated_password = password  # Save for response
+        new_user["password_hash"] = hash_password(password).decode('utf-8')
         
-        new_user["Password"] = hash_password(password).decode('utf-8')
+        # Save the user document
+        user_result = mongo.db.users.insert_one(new_user)
         
-        result = mongo.db.users.insert_one(new_user)
-        
-        # If the user is a supplier, create a supplier record
-        supplier_data = None
         if data["Role"] == "Supplier":
             # Get the next available SuppID
             last_supplier = mongo.db.suppliers.find_one(sort=[("SuppID", -1)])
             new_supp_id = last_supplier["SuppID"] + 1 if last_supplier else 1
             
-            # Create supplier document
             new_supplier = {
                 "SuppID": new_supp_id,
                 "SuppName": data["SuppName"],
@@ -113,30 +110,19 @@ def create_user():
             
             supplier_result = mongo.db.suppliers.insert_one(new_supplier)
             new_supplier["_id"] = str(supplier_result.inserted_id)
-            supplier_data = new_supplier
-        
-        response_user = new_user.copy()
-        del response_user["Password"]  # Don't return password hash
-        response_user["_id"] = str(result.inserted_id)
-        
-        response = {
-            "message": "User created successfully", 
-            "user": response_user
-        }
-        
-        # Add generated password to response if one was created
-        if 'generated_password' in locals():
-            response["generated_password"] = generated_password
             
-        # Add supplier data if created
-        if supplier_data:
-            response["supplier_details"] = supplier_data
-            
-        return jsonify(response), 201
+        return jsonify("User Created Successfully"), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
 @user_bp.route("/<user_id>", methods=["PUT"])
 def update_user(user_id):
+    check = check_if_admin(request, mongo)
+    if check == 'Not signed in':
+        return redirect(url_for('loginPage'))
+    elif check == 'Not Admin':
+        return redirect(url_for('home'))
     try:
         user_id = int(user_id)
         data = request.json
