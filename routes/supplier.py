@@ -1,6 +1,6 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify,redirect,url_for
 from utilities.db_connector import mongo
-from utilities.utils import convert_objectid
+from utilities.utils import convert_objectid, check_if_admin
 
 supplier_bp = Blueprint("suppliers", __name__)
 
@@ -122,8 +122,8 @@ def get_products_not_linked_to_supplier(supplierID):
         print("Error fetching products not linked to supplier:", e)
         return jsonify({"error": "Internal Server Error"}), 500
 
-@supplier_bp.route('/products/<supplier_id>/<product_id>', methods=["POST"])
-def add_supplier_product(supplier_id, product_id):
+@supplier_bp.route('/products/<supplier_id>/<SP_ID>', methods=["POST"])
+def add_supplier_product(supplier_id, SP_ID):
     # Get the data from the request body
     data = request.get_json()
     
@@ -140,7 +140,7 @@ def add_supplier_product(supplier_id, product_id):
     # Create a new supplier product document
     supplier_product = {
         "SuppID": int(supplier_id),
-        "ProdID": int(product_id),
+        "ProdID": int(SP_ID),
         "Price1": price1,
         "Amount1": amount1,
         "Price2": price2,
@@ -157,3 +157,35 @@ def add_supplier_product(supplier_id, product_id):
     except Exception as e:
         # Handle any errors that occur during insertion
         return jsonify({"error": str(e)}), 500
+
+@supplier_bp.route('/products/<SP_ID>', methods=['DELETE'])
+def delete_SP(SP_ID):
+    print(SP_ID)
+    try:
+        SP_ID = int(SP_ID)
+        check = check_if_admin(request, mongo)
+        if check == 'Not signed in':
+            return redirect(url_for('loginPage'))
+        elif check == 'Not Admin':
+            return redirect(url_for('home'))
+
+        SP = mongo.db.supplier_products.find_one({'SupplierProductID': SP_ID})
+        if not SP:
+            return jsonify({'success': False, 'message': 'מוצר לא נמצא'}), 404
+        
+        # Then delete the product itself
+        SP_result = mongo.db.supplier_products.delete_one({'SupplierProductID': SP_ID})
+        
+        if SP_result.deleted_count > 0:
+            return jsonify({
+                'success': True, 
+                'message': "מוצר ספק נמחק בהצלחה",
+            }), 200
+        else:
+            return jsonify({'success': False, 'message': 'אירעה שגיאה במחיקת המוצר'}), 500
+            
+    except ValueError:
+        return jsonify({'success': False, 'message': 'מזהה מוצר לא תקין'}), 400
+    except Exception as e:
+        print(f"Error deleting product: {str(e)}")
+        return jsonify({'success': False, 'message': 'אירעה שגיאה במחיקת המוצר'}), 500

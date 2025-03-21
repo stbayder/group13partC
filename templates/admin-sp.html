@@ -1,0 +1,405 @@
+{% extends "base.html" %}
+{% block title %}Profile Page{% endblock %}
+{% block content %}
+
+
+<div class="personal-area">
+    <h1>מוצרי ספק</h1>
+    <h2>בחר ספק </h2>
+
+    <select name="supplierList" id="supplierList" onchange="handleSupplierChange()">
+        <option value="">-- בחר ספק --</option>
+        <!-- Supplier options will be dynamically inserted here -->
+    </select>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>אישור מחיקה</h2>
+            <p>האם אתה בטוח שברצונך למחוק את המשתמש הזה?</p>
+
+            <div class="modal-buttons">
+                <button id="confirmDelete" class="delete-button">כן, מחק</button>
+                <button id="cancelDelete">ביטול</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="table-container" class="invis">
+        <h1 id="supplier-product-header"> רשימת פריטים</h1>
+        <table class="supplier-table">
+            <thead>
+                <tr>
+                    <th>שם פריט</th>
+                    <th>קטגוריה</th>
+                    <th>מחיר רגיל</th>
+                    <th>מחיר סיטונאי</th>
+                    <th>יחידות במלאי</th>
+                    <th>הנחה</th>
+                    <th>פעולות</th>
+                </tr>
+            </thead>
+            <tbody id="supplierTableBody">
+                <!-- Supplier products rows will be dynamically inserted here -->
+            </tbody>
+        </table>
+        
+        <!-- Pagination Controls -->
+        <div class="pagination-controls" id="paginationControls">
+            <button id="prevPage" class="pagination-button">&lt; הקודם</button>
+            <span id="pageInfo" class="page-info">עמוד <span id="currentPage">1</span> מתוך <span id="totalPages">1</span></span>
+            <button id="nextPage" class="pagination-button">הבא &gt;</button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+// Pagination variables
+let currentPage = 1;
+const rowsPerPage = 8;
+let allSupplierProducts = [];
+let suppliers = [];
+
+let userData = null;
+let SP_ToDelete = null;
+
+document.addEventListener("DOMContentLoaded", async () => {
+    userData = await getUserData();
+    if(userData.Role != "Admin"){
+        alert('רק ספקים ומנהלים יכולים לבצע פעולה זו.');
+        window.location.href = "/login";
+        return;
+    }
+
+    // Fetch all suppliers
+    await fetchSuppliers();
+    
+    // Populate supplier dropdown
+    populateSupplierDropdown();
+
+    // Add event listeners for pagination buttons
+    document.getElementById('prevPage').addEventListener('click', goToPreviousPage);
+    document.getElementById('nextPage').addEventListener('click', goToNextPage);
+    
+    // Add event listeners for delete modal
+    document.getElementById('cancelDelete').addEventListener('click', closeDeleteModal);
+    document.getElementById('confirmDelete').addEventListener('click', confirmDeleteSP);
+});
+
+async function fetchSuppliers() {
+    try {
+        const response = await fetch('/suppliers/', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+            suppliers = result.data;
+        } else {
+            console.error('Error fetching suppliers:', result.error);
+            alert('שגיאה בטעינת רשימת הספקים: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error connecting to server:', error);
+        alert('שגיאה בחיבור לשרת.');
+    }
+}
+
+function populateSupplierDropdown() {
+    const supplierList = document.getElementById('supplierList');
+    suppliers.forEach(supplier => {
+        const option = document.createElement('option');
+        option.value = supplier.SuppID;
+        option.textContent = supplier.SuppName;
+        supplierList.appendChild(option);
+    });
+}
+
+async function handleSupplierChange() {
+    const supplierList = document.getElementById('supplierList');
+    const selectedSupplierId = supplierList.value;
+    const tableContainer = document.getElementById('table-container');
+    
+    // Clear previous products
+    allSupplierProducts = [];
+    currentPage = 1;
+    
+    // Hide table if no supplier selected
+    if (!selectedSupplierId) {
+        tableContainer.classList.add('invis');
+        return;
+    }
+    
+    // Fetch selected supplier's products
+    const products = await getSupplierProducts(selectedSupplierId);
+    
+    if (products && products.length > 0) {
+        allSupplierProducts = products;
+        setupPagination();
+        displayCurrentPage();
+        tableContainer.classList.remove('invis');
+    } else {
+        tableContainer.classList.add('invis');
+        alert('אין מוצרים לספק זה');
+    }
+}
+
+function setupPagination() {
+    const totalPages = Math.ceil(allSupplierProducts.length / rowsPerPage);
+    document.getElementById('totalPages').textContent = totalPages;
+    updatePaginationControls();
+}
+
+function displayCurrentPage() {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, allSupplierProducts.length);
+    const currentPageItems = allSupplierProducts.slice(startIndex, endIndex);
+    
+    populateSupplierTable(currentPageItems);
+    document.getElementById('currentPage').textContent = currentPage;
+}
+
+function goToPreviousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        displayCurrentPage();
+        updatePaginationControls();
+    }
+}
+
+function goToNextPage() {
+    const totalPages = Math.ceil(allSupplierProducts.length / rowsPerPage);
+    if (currentPage < totalPages) {
+        currentPage++;
+        displayCurrentPage();
+        updatePaginationControls();
+    }
+}
+
+function updatePaginationControls() {
+    const totalPages = Math.ceil(allSupplierProducts.length / rowsPerPage);
+    
+    // Update prev button state
+    const prevButton = document.getElementById('prevPage');
+    prevButton.disabled = currentPage === 1;
+    prevButton.classList.toggle('disabled', currentPage === 1);
+    
+    // Update next button state
+    const nextButton = document.getElementById('nextPage');
+    nextButton.disabled = currentPage === totalPages;
+    nextButton.classList.toggle('disabled', currentPage === totalPages);
+    
+    // Hide pagination controls if there's only one page
+    const paginationControls = document.getElementById('paginationControls');
+    paginationControls.style.display = totalPages <= 1 ? 'none' : 'flex';
+}
+
+function populateSupplierTable(supplierProducts) {
+    const tableBody = document.getElementById('supplierTableBody');
+    if(tableBody){
+        tableBody.innerHTML = supplierProducts.map(createSupplierRow).join('');
+    }
+}
+
+function createSupplierRow(supplier) {
+    let productInfo = supplier.ProductDetails;
+    console.log('prodinfo',productInfo)
+    console.log(supplier,'supplier')
+    if (!productInfo) {
+        return `
+            <tr>
+                <td>Unknown Product</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+            </tr>
+        `;
+    }
+
+    return `
+        <tr>
+            <td>${productInfo.ProdName}</td>
+            <td>${productInfo.Category}</td>
+            <td>₪${supplier.Price1} ליח' עד ${supplier.Amount1} יח'</td>
+            <td>₪${supplier.Price2} ליח' מ ${supplier.Amount2} יח' ומעלה</td>
+            <td>${supplier.StockQuantity}</td>
+            <td>${supplier.Discount ? supplier.Discount : ""}</td>
+            <td>
+                <button id="del-btn" onclick="showDeleteModal(${supplier.SupplierProductID})">מחק</button>
+                <button id="edit-btn" onclick="editSP(${supplier.SupplierProductID})">ערוך</button>
+            </td>
+        </tr>
+    `;
+}
+
+async function getSupplierProducts(supplierID){
+    let supplierProducts = null;
+    try {
+        const response = await fetch(`/suppliers/products/${supplierID}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            supplierProducts = data.data;
+            localStorage.setItem('Supplier-products', JSON.stringify(data.data));
+        } else {
+            alert("שגיאה: " + data.error);
+        }
+    } catch (error) {
+        console.error("Error getting supplier Products:", error);
+        alert("שגיאה בחיבור לשרת.");
+    }
+    return supplierProducts;
+}
+
+function showDeleteModal(SP_ID) {
+    SP_ToDelete = SP_ID;
+    document.getElementById('deleteModal').style.display = 'flex';
+    console.log(document.getElementById('deleteModal').style.display)
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    SP_ToDelete = null;
+}
+
+async function confirmDeleteSP() {
+    if (SP_ToDelete) {
+        try {
+            const response = await fetch(`/suppliers/products/${SP_ToDelete}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const responseData = await response.json();
+                
+                alert(`מוצר הספק נמחק בהצלחה`);
+                
+                const supplierList = document.getElementById('supplierList');
+                const selectedSupplierId = supplierList.value;
+                
+                const updatedProducts = await getSupplierProducts(selectedSupplierId);
+                
+                if (updatedProducts && updatedProducts.length > 0) {
+                    allSupplierProducts = updatedProducts;
+                    // Reset to first page if we're on a page that no longer exists
+                    const newTotalPages = Math.ceil(allSupplierProducts.length / rowsPerPage);
+                    if (currentPage > newTotalPages) {
+                        currentPage = newTotalPages;
+                    }
+                    setupPagination();
+                    displayCurrentPage();
+                } else {
+                    // No products left for this supplier
+                    allSupplierProducts = [];
+                    document.getElementById('supplierTableBody').innerHTML = '';
+                    document.getElementById('table-container').classList.add('invis');
+                    alert('אין מוצרים לספק זה');
+                }
+            } else {
+                const errorData = await response.json();
+                alert(`שגיאה: ${errorData.error || 'אירעה שגיאה במחיקת מוצר ספק'}`);
+            }
+        } catch (error) {
+            console.error('Error deleting supplier product:', error);
+            alert('אירעה שגיאה במחיקת מוצר ספק');
+        }
+        closeDeleteModal();
+    }
+}
+
+function editSP(SP_ID){
+    window.location = f`/supplier/edit-prodcut/${SP_ID}`
+}
+</script>
+
+<style>
+#supplier-product-header {
+    margin-top: 5vh;
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    direction: rtl;
+}
+
+.pagination-button {
+    padding: 5px 10px;
+    margin: 0 5px;
+    background-color: #f8f9fa;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.pagination-button:hover {
+    background-color: #e9ecef;
+}
+
+.pagination-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-info {
+    margin: 0 10px;
+    font-size: 14px;
+}
+
+/* Make sure table rows have consistent height */
+.supplier-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    direction: rtl;
+}
+
+.supplier-table th,
+.supplier-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+.supplier-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.supplier-table tr {
+    height: 48px;
+}
+
+#table-container {
+    min-height: 500px; /* Keep consistent height even with fewer rows */
+}
+
+.invis{
+    display: none;
+}
+
+select {
+    padding: 8px;
+    width: 300px;
+    margin-bottom: 20px;
+    direction: rtl;
+}
+
+#del-btn{
+    background-color: red;
+}
+</style>
+{% endblock %}

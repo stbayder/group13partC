@@ -106,3 +106,14 @@ def get_user_creation_page():
         return redirect(url_for('home'))
     else:
         return render_template('admin-new-user.html')
+
+
+@page_bp.route('/admin/supplier-products',methods=["GET"])
+def get_admin_supplier_product_page():
+    check = check_if_admin(request, mongo)
+    if check == 'Not signed in':
+        return redirect(url_for('loginPage'))
+    elif check == 'Not Admin':
+        return redirect(url_for('home'))
+    else:
+        return render_template('admin-sp.html')

@@ -33,7 +33,6 @@
     <div class="modal-content">
         <h2>אישור מחיקה</h2>
         <p>האם אתה בטוח שברצונך למחוק את המשתמש הזה?</p>
-        {# להוסיף הודעה בהתאם להאם זה ספק או אדמין כי יש למחוק גם את כל המוצרי ספק #}
 
         <div class="modal-buttons">
             <button id="confirmDelete" class="delete-button">כן, מחק</button>
@@ -46,7 +45,6 @@
 let currentPage = 1;
 const rowsPerPage = 8;
 let allUsers = {{ users | safe }};
-console.log(allUsers)
 let totalPages = Math.ceil(allUsers.length / rowsPerPage);
 let userToDelete = null;
 
@@ -119,29 +117,24 @@ function goToNextPage() {
     }
 }
 
-// Function to navigate to the edit user page
 function goToEditUser(UserID) {
     window.location.href = `/admin/user/edit/${UserID}`;
 }
 
-// Function to navigate to the user details page
 function goToUserPage(UserID) {
     window.location.href = `/users/${UserID}`;
 }
 
-// Function to show the delete confirmation modal
 function showDeleteModal(UserID) {
     userToDelete = UserID;
     document.getElementById('deleteModal').style.display = 'flex';
 }
 
-// Function to close the delete confirmation modal
 function closeDeleteModal() {
     document.getElementById('deleteModal').style.display = 'none';
     userToDelete = null;
 }
 
-// Function to confirm and perform the delete operation
 async function confirmDeleteuser() {
     if (userToDelete) {
         try {
@@ -163,14 +156,10 @@ async function confirmDeleteuser() {
             if (response.ok) {
                 const responseData = await response.json();
                 
-                // Remove the user from the allUsers array - FIXED HERE
-                // The issue was using ProdID instead of UserID in the filter
                 allUsers = allUsers.filter(user => user.UserID !== userToDelete);
                 
-                // Recalculate total pages
                 totalPages = Math.ceil(allUsers.length / rowsPerPage);
                 
-                // Adjust current page if necessary
                 if (currentPage > totalPages && totalPages > 0) {
                     currentPage = totalPages;
                 } else if (totalPages === 0) {
@@ -181,7 +170,6 @@ async function confirmDeleteuser() {
                 updatePaginationInfo();
                 displayusersForCurrentPage();
                 
-                // Show success message with details
                 if (responseData.supplier_deleted) {
                     alert(`המשתמש נמחק בהצלחה. נמחק גם הספק והמוצרים של הספק.`);
                 } else {
@@ -279,37 +267,6 @@ td{
 
 #new-prod-btn{
     margin-bottom: 1rem;
-}
-
-/* Modal styles */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 5px;
-    width: 400px;
-    max-width: 90%;
-    text-align: center;
-    direction: rtl;
-}
-
-.modal-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
 }
 
 .delete-button {
