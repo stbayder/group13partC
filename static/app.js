@@ -165,34 +165,44 @@ function showError(field, isError) {
 
   
   // Populate profile page with user data (currently using hardcoded data)
-  function populateProfilePage() {
+  async function populateProfilePage() {
     const username = getCookie("username");
     if (username == null) {
       alert("You are not logged in!");
       window.location = "/login";
       return;
     }
-
-    fetch(`/suppliers/by-username/${username}`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json"
+    userData = await getUserData()
+    if(userData.Role == "Supplier"){
+      fetch(`/suppliers/by-username/${username}`, {
+          method: "GET",
+          headers: {
+              "Content-Type": "application/json"
+          }
+      })
+      .then(response => response.json())
+      .then(data=>{
+        if (data.message === "Success") {
+          document.getElementById("profile_full_name").innerText = data.data['fullname'];
+          document.getElementById("profile_address").innerText = data.data['address'];
+          document.getElementById("profile_phone").innerText = data.data['phone'];
+          document.getElementById("profile_role").innerText = data.data['role'] == "Supplier" ? "ספק" : data.data['role'];
+          document.getElementById("profile_company").innerText = data.data['SuppName'] ;
+        } else {
+          // Unsuccessful login logic
+            alert("לא נמצא שם משתמש או ספק מתאים " + (data.error || ""));
+            window.location = "/login";
+            return;
         }
-    })
-    .then(response => response.json())
-    .then(data=>{
-      if (data.message === "Success") {
-        document.getElementById("profile_full_name").innerText = data.data['fullname'];
-        document.getElementById("profile_address").innerText = data.data['address'];
-        document.getElementById("profile_phone").innerText = data.data['phone'];
-        document.getElementById("profile_role").innerText = data.data['role'] == "Supplier" ? "ספק" : data.data['role'];
-        document.getElementById("profile_company").innerText = data.data['SuppName'] ;
-      } else {
-        // Unsuccessful login logic
-          alert("לא נמצא שם משתמש או ספק מתאים " + (data.error || ""));
-          window.location = "/login";
-          return;
-      }
-    }) 
+      }) 
+    }
+    else if (userData.Role == "Admin"){
+      document.getElementById('profileNameLabel').innerText = "שם משתמש"
+      document.getElementById("profile_full_name").innerText = userData.UserName;
+      document.getElementById("profile_address").innerText = "-";
+      document.getElementById("profile_phone").innerText = "-";
+      document.getElementById("profile_role").innerText = "אדמין";
+      document.getElementById("profile_company").innerText = "-" ;
+    }
   }
   

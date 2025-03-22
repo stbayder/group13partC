@@ -283,7 +283,7 @@ async function linkProductToSupplier(event) {
         const data = await response.json();
         if (response.ok) {
             alert("המוצר שויך בהצלחה לספק!");
-            loadUnlinkedProducts(); // Reload unlinked products after successful link
+            loadUnlinkedProducts(); 
         } else {
             alert("שגיאה: " + data.error);
         }
@@ -295,7 +295,6 @@ async function linkProductToSupplier(event) {
 </script>
 
 <style>
-/* Add your custom styles */
 .product-card {
     cursor: pointer;
     width: 10vw;

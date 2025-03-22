@@ -16,7 +16,7 @@
     <div id="deleteModal" class="modal" style="display: none;">
         <div class="modal-content">
             <h2>אישור מחיקה</h2>
-            <p>האם אתה בטוח שברצונך למחוק את המשתמש הזה?</p>
+            <p>האם אתה בטוח שברצונך למחוק את המוצר הזה?</p>
 
             <div class="modal-buttons">
                 <button id="confirmDelete" class="delete-button">כן, מחק</button>
@@ -72,10 +72,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    // Fetch all suppliers
     await fetchSuppliers();
     
-    // Populate supplier dropdown
     populateSupplierDropdown();
 
     // Add event listeners for pagination buttons
@@ -206,8 +204,6 @@ function populateSupplierTable(supplierProducts) {
 
 function createSupplierRow(supplier) {
     let productInfo = supplier.ProductDetails;
-    console.log('prodinfo',productInfo)
-    console.log(supplier,'supplier')
     if (!productInfo) {
         return `
             <tr>
@@ -262,7 +258,6 @@ async function getSupplierProducts(supplierID){
 function showDeleteModal(SP_ID) {
     SP_ToDelete = SP_ID;
     document.getElementById('deleteModal').style.display = 'flex';
-    console.log(document.getElementById('deleteModal').style.display)
 }
 
 function closeDeleteModal() {
@@ -319,8 +314,9 @@ async function confirmDeleteSP() {
 }
 
 function editSP(SP_ID){
-    window.location = f`/supplier/edit-prodcut/${SP_ID}`
+    window.location = `/suppliers/products/edit/${SP_ID}`
 }
+
 </script>
 
 <style>

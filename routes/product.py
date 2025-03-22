@@ -105,7 +105,6 @@ def product_info(product_id):
 
 @product_bp.route('/<product_id>', methods=["PUT"])
 def edit_product(product_id):
-    # Convert product_id to integer
     product_id = int(product_id)
     
     check = check_if_admin(request, mongo)

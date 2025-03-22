@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+{% block title %}Update Supplier Product{% endblock %}
+{% block content %}
+<div>
+    <form id="edit-SP-form" class="edit-SP-form">
+        <div class="form-group">
+            <label for="prodName">שם מוצר:</label>
+            <input type="text" id="prodName" name="prodName" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="supplierName">שם ספק:</label>
+            <input type="text" id="supplierName" name="supplierName" disabled>
+        </div>
+        <div class="form-group">
+            <label for="price1">מחיר לכמות ראשונה:</label>
+            <input type="number" id="price1" name="price1" step="0.01" min="0.01" required>
+        </div>
+        <div class="form-group">
+            <label for="amount1">כמות ראשונה:</label>
+            <input type="number" id="amount1" name="amount1" step="1" min="1" onkeydown="return event.keyCode !== 190 && event.keyCode !== 110" required>
+        </div>
+        <div class="form-group">
+            <label for="price2">מחיר לכמות שניה:</label>
+            <input type="number" id="price2" name="price2" step="0.01" min="0.01" required>
+        </div>
+        <div class="form-group">
+            <label for="amount2">כמות שניה:</label>
+            <input type="number" id="amount2" name="amount2" step="1" min="1" onkeydown="return event.keyCode !== 190 && event.keyCode !== 110" required>
+        </div>
+        <div class="form-group">
+            <label for="product_units">כמות יחידות במלאי:</label>
+            <input type="number" id="product_units" name="units" step="1" min="0" onkeydown="return event.keyCode !== 190 && event.keyCode !== 110" required>
+        </div>
+        
+        <div id="status-message" class="status-message"></div>
+        <div class="form-actions">
+            <button type="submit" id="save-user-btn">שמור שינויים</button>
+            <button type="button" id="cancel-btn" onclick="goBack()">ביטול</button>
+        </div>
+    </form>
+</div>
+
+<script>
+
+let product = {{ product | tojson| safe}}
+let SP      = {{ SP | tojson| safe}}
+let SP_Supplier = {{SP_Supplier | tojson | safe}}
+
+let userData = null;
+let supplierData = null;
+
+document.addEventListener("DOMContentLoaded", async () => {
+    userData = await getUserData();
+    if(!['Admin','Supplier'].includes(userData.Role)){
+        alert('רק ספקים ומנהלים יכולים לבצע פעולה זו.');
+        window.location.href = "/login";
+        return;
+    }
+    
+    try {
+        if(userData.Role === "Supplier") {
+            supplierData = await getSupplierData();
+            if(supplierData && SP && supplierData.SuppID != SP.SuppID){
+                alert("אתה לא הספק של המוצר הזה.");
+                window.location.href = "/suppliers/products";
+                return;
+            }
+        }
+        
+        populateForm();
+        setupFormSubmission();
+        
+    } catch (error) {
+        console.error("Error initializing page:", error);
+        alert("שגיאה בטעינת הדף. אנא נסה שנית.");
+    }
+});
+async function getSupplierData(){
+    if(userData.Role == "Supplier") {
+        try {
+            const response = await fetch(`/suppliers/by-username/${userData.UserName}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                return data.data;
+            } else {
+                alert("שגיאה: " + data.error);
+                window.location.href = "/login";
+                return null;
+            }
+        } catch (error) {
+            console.error("Error getting supplierData", error);
+            alert("שגיאה בחיבור לשרת.");
+            return null;
+        }
+    }
+    return null;
+}
+
+function goBack() {
+    window.location.href = '/suppliers/products';
+}
+
+function populateForm(){
+    document.getElementById('prodName').value = product.ProdName
+    document.getElementById('supplierName').value = SP_Supplier.SuppName
+    document.getElementById('price1').value = SP.Price1
+    document.getElementById('amount1').value = SP.Amount1
+    document.getElementById('price2').value = SP.Price2
+    document.getElementById('amount2').value = SP.Amount2
+    document.getElementById('product_units').value = SP.StockQuantity
+
+}
+
+function setupFormSubmission() {
+    const form = document.getElementById('edit-SP-form');
+    
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        const price1 = parseFloat(document.getElementById('price1').value);
+        const amount1 = parseInt(document.getElementById('amount1').value);
+        const price2 = parseFloat(document.getElementById('price2').value);
+        const amount2 = parseInt(document.getElementById('amount2').value);
+        const stockQuantity = parseInt(document.getElementById('product_units').value);
+        
+        // Validate inputs
+        const errors = [];
+        
+        if (isNaN(price1) || price1 <= 0) {
+            errors.push("מחיר לכמות ראשונה חייב להיות מספר חיובי");
+        }
+        
+        if (isNaN(amount1) || amount1 <= 0 || !Number.isInteger(amount1)) {
+            errors.push("כמות ראשונה חייבת להיות מספר שלם חיובי");
+        }
+        
+        if (isNaN(price2) || price2 <= 0) {
+            errors.push("מחיר לכמות שניה חייב להיות מספר חיובי");
+        }
+        
+        if (isNaN(amount2) || amount2 <= 0 || !Number.isInteger(amount2)) {
+            errors.push("כמות שניה חייבת להיות מספר שלם חיובי");
+        }
+        
+        if (amount2 <= amount1) {
+            errors.push("כמות שניה חייבת להיות גדולה מכמות ראשונה");
+        }
+        
+        if (isNaN(stockQuantity) || stockQuantity < 0 || !Number.isInteger(stockQuantity)) {
+            errors.push("כמות יחידות במלאי חייבת להיות מספר שלם שאינו שלילי");
+        }
+        
+        // If errors exist, display them and stop submission
+        if (errors.length > 0) {
+            const statusMessage = document.getElementById('status-message');
+            statusMessage.classList.add('error');
+            statusMessage.innerHTML = errors.map(error => `<p>${error}</p>`).join('');
+            return;
+        }
+        
+        const updateData = {
+            Price1: price1,
+            Price2: price2,
+            Amount1: amount1,
+            Amount2: amount2,
+            StockQuantity: stockQuantity
+        };
+        
+        try {
+            const response = await fetch(`/suppliers/products/${SP.SupplierProductID}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updateData)
+            });
+            
+            const result = await response.json();
+            
+            const statusMessage = document.getElementById('status-message');
+            
+            if (response.ok) {
+                statusMessage.classList.remove('error');
+                statusMessage.classList.add('success');
+                statusMessage.textContent = result.message || 'המוצר עודכן בהצלחה';
+                
+                // Redirect after successful update after 2 seconds
+                setTimeout(() => {
+                    window.location.href = '/profile';
+                }, 2000);
+            } else {
+                statusMessage.classList.add('error');
+                statusMessage.classList.remove('success');
+                statusMessage.textContent = result.message || 'אירעה שגיאה בעדכון המוצר';
+            }
+        } catch (error) {
+            console.error('Error updating product:', error);
+            const statusMessage = document.getElementById('status-message');
+            statusMessage.classList.add('error');
+            statusMessage.classList.remove('success');
+            statusMessage.textContent = 'שגיאה בחיבור לשרת. אנא נסה שנית.';
+        }
+    });
+}
+</script>
+
+<style>
+.edit-SP-form {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    direction: rtl;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.form-group input:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.form-actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+#save-user-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+#save-user-btn:hover {
+    background-color: #218838;
+}
+
+#cancel-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+#cancel-btn:hover {
+    background-color: #c82333;
+}
+
+.status-message {
+    margin: 15px 0;
+    padding: 10px;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.status-message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Add responsiveness */
+@media (max-width: 768px) {
+    .edit-SP-form {
+        padding: 15px;
+        margin: 0 10px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .form-actions button {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

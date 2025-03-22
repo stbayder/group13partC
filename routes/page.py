@@ -117,3 +117,5 @@ def get_admin_supplier_product_page():
         return redirect(url_for('home'))
     else:
         return render_template('admin-sp.html')
+
+
