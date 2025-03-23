@@ -2,19 +2,19 @@
     "users": [
         {
             "UserID": 1,
-            "UserName": "brent58639",
+            "UserName": "Supplier",
             "Email": "brent58639@conner.net",
             "Role": "Supplier",
             "FullName": "כרם סרוסי",
-            "password_hash": "$2b$12$6ujLzRyBrrvDCVtWnnBAh.WBk7nyRWHXlGKsJLjn9FMMQQj09WC3S"
+            "password_hash": "b'$2b$12$yzUd5G9VGNTkZiLmFNvkJeJuUKcZvhZXnUqszN/j2m1J8UeKWfzAi'"
         },
         {
             "UserID": 2,
-            "UserName": "sergiorandolph75",
+            "UserName": "Admin",
             "Email": "sergiorandolph75@pena-roth.com",
             "Role": "Admin",
             "FullName": "רהף ג'בארין",
-            "password_hash": "$2b$12$RXT7oFviuekp3JJVrgqjiugUEJ62cnXQRFYZ27O1XHx0RpC108.2G"
+            "password_hash": "b'$2b$12$yzUd5G9VGNTkZiLmFNvkJeJuUKcZvhZXnUqszN/j2m1J8UeKWfzAi'"
         },
         {
             "UserID": 3,
