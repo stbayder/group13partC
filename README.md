@@ -109,3 +109,6 @@
 
 **פרופיל משתמש**
 ![פרופיל משתמש](https://github.com/user-attachments/assets/2368e744-f3ea-4504-abab-2d4f9d34edd6)
+
+
+ב מוק דאטה קיים מ שתמש Admin ומשתמש Supplier עם סיסמה 12345678 כדי לאפשר בדיקות לפרויקט
